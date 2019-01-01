@@ -49,12 +49,9 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def reset(self, ctx):
-        """Reset all balances"""
-        users = await self.config.guild(ctx.guild).users()
-        for user, stats in users.items():
-            stats["balance"] = 0
-        await self.config.guild(ctx.guild).users.set(users)
-        await ctx.send("All balances reset to 0")
+        """Reset, deleting all users"""
+        await self.config.guild(ctx.guild).users.set({})
+        await ctx.send("All users deleted")
 
     @commands.group()
     @commands.guild_only()
@@ -122,20 +119,10 @@ class MuteForMoney(commands.Cog):
                 await self.create_user(ctx, user)
         if created_user:
             users = await self.config.guild(ctx.guild).users()
-        users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
+        users[donor.id]["donated"] = users[donor.id]["donated"] + amount
         users[recipient.id]["balance"] = users[recipient.id]["balance"] + amount
         await self.config.guild(ctx.guild).users.set(users)
         await ctx.send(f"Balance changed for {recipient} by {amount}")
-
-    @commands.command()
-    @commands.guild_only()
-    @checks.admin_or_permissions(manage_roles=True)
-    async def getguild(self, ctx):
-        """Add donation from donator to donatee"""
-        users = await self.config.guild(ctx.guild).users()
-        print(users)
-        await ctx.send(f"{users}")
-
 
     # Backend Functions
     async def create_user(self, ctx, member: discord.Member):
@@ -144,5 +131,5 @@ class MuteForMoney(commands.Cog):
             "donated": 0
         }
         users = await self.config.guild(ctx.guild).users()
-        users[member.id] = user
+        users[int(member.id)] = user
         await self.config.guild(ctx.guild).users.set(users)
