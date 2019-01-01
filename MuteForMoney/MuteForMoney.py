@@ -65,11 +65,11 @@ class MuteForMoney(commands.Cog):
     async def get(self, ctx, member: discord.Member):
         """Get balance for member"""
         users = await self.config.guild(ctx.guild).users()
-        if users.get(member.id):
+        if users.get(str(member.id)):
             print('yes user')
             currency = await self.config.guild(ctx.guild).currency()
             money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
-            balance = users[member.id]['balance']
+            balance = users[str(member.id)]['balance']
             pre = f"{member.name} has a {balance} {currency} balance\n"
             minutes_left = abs(balance / money_per_min)
             if balance >= 0:
@@ -87,8 +87,8 @@ class MuteForMoney(commands.Cog):
     async def set(self, ctx, member: discord.Member, balance_amount: int):
         """Set balance for member"""
         users = await self.config.guild(ctx.guild).users()
-        if users.get(member.id):
-            users[member.id]["balance"] = balance_amount
+        if users.get(str(member.id)):
+            users[str(member.id)]["balance"] = balance_amount
             await self.config.guild(ctx.guild).users.set(users)
         else:
             await ctx.send(f"{member.name} has not participated in the event")
@@ -99,8 +99,8 @@ class MuteForMoney(commands.Cog):
     async def clear(self, ctx, member: discord.Member):
         """clear balance for member"""
         users = await self.config.guild(ctx.guild).users()
-        if users.get(member.id):
-            users[member.id]["balance"] = 0
+        if users.get(str(member.id)):
+            users[str(member.id)]["balance"] = 0
             await self.config.guild(ctx.guild).users.set(users)
         else:
             await ctx.send(f"{member.name} has not participated in the event")
@@ -114,13 +114,13 @@ class MuteForMoney(commands.Cog):
         users = await self.config.guild(ctx.guild).users()
         print(users)
         for user in [donor, recipient]:
-            if not users.get(user.id):
+            if not users.get(str(user.id)):
                 created_user = True
                 await self.create_user(ctx, user)
         if created_user:
             users = await self.config.guild(ctx.guild).users()
-        users[donor.id]["donated"] = users[donor.id]["donated"] + amount
-        users[recipient.id]["balance"] = users[recipient.id]["balance"] + amount
+        users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
+        users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + amount
         await self.config.guild(ctx.guild).users.set(users)
         await ctx.send(f"Balance changed for {recipient} by {amount}")
 
@@ -131,5 +131,5 @@ class MuteForMoney(commands.Cog):
             "donated": 0
         }
         users = await self.config.guild(ctx.guild).users()
-        users[int(member.id)] = user
+        users[str(member.id)] = user
         await self.config.guild(ctx.guild).users.set(users)
