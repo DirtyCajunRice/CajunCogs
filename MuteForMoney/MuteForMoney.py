@@ -89,7 +89,7 @@ class MuteForMoney(commands.Cog):
         await self.config.guild(ctx.guild).moneyPerMin.set(moneypermin)
         await ctx.send(f"Money per minute set to {moneypermin}/min")
 
-    @setserver.command()
+    @setserver.command(pass_context=True)
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def channel(self, ctx, channelid: int):
