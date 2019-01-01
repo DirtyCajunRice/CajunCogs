@@ -134,43 +134,27 @@ class MuteForMoney(commands.Cog):
     @balance.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def set(self, ctx, member: discord.Member, balance_amount: int):
+    async def set(self, member: discord.Member, balance_amount: int):
         """Set balance for member"""
-        users = await self.config.guild(ctx.guild).users()
-        if users.get(str(member.id)):
-            users[str(member.id)]["balance"] = balance_amount
-            await self.config.guild(ctx.guild).users.set(users)
-        else:
-            await ctx.send(f"{member.name} has not participated in the event")
+        await self.config.member(member).balance.set(balance_amount)
 
     @balance.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def clear(self, ctx, member: discord.Member):
+    async def clear(self, member: discord.Member):
         """clear balance for member"""
-        users = await self.config.guild(ctx.guild).users()
-        if users.get(str(member.id)):
-            users[str(member.id)]["balance"] = 0
-            await self.config.guild(ctx.guild).users.set(users)
-        else:
-            await ctx.send(f"{member.name} has not participated in the event")
+        await self.config.member(member).balance.set(0)
 
     @commands.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def donation(self, ctx, donor: discord.Member, amount: int, recipient: discord.Member):
         """Add donation from donor to recipient"""
-        created_user = False
-        users = await self.config.guild(ctx.guild).users()
-        for user in [donor, recipient]:
-            if not users.get(str(user.id)):
-                created_user = True
-                await self.create_user(ctx, user)
-        if created_user:
-            users = await self.config.guild(ctx.guild).users()
-        users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
-        users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + amount
-        await self.config.guild(ctx.guild).users.set(users)
+        with await self.config.member(donor).donated() as donated:
+            donated += amount
+        with await self.config.member(recipient).balance() as balance:
+            balance += amount
+
         await ctx.send(f"Balance changed for {recipient} by {amount}")
 
     @commands.command()
