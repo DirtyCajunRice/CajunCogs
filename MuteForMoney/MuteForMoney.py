@@ -10,12 +10,11 @@ class MuteForMoney(commands.Cog):
         self.config = Config.get_conf(self, identifier=8008135)
         self.task = None
         default_guild = {
-            'currency': 'USD',
             "moneyPerMin": 0,
             "eventChannel": None
         }
         default_member = {
-            "balance": 0,
+            "insurance": 0,
             "donated": 0,
             "on_hold": False
         }
@@ -58,7 +57,8 @@ class MuteForMoney(commands.Cog):
     async def reset(self, ctx):
         """Reset, deleting all users"""
         await self.config.clear_all_members(ctx.guild)
-        await ctx.send("All users deleted")
+        await bank.wipe_bank(ctx.guild)
+        await ctx.send("All users/bank deleted")
 
     @commands.group()
     @commands.guild_only()
@@ -72,8 +72,8 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def currency(self, ctx, currency):
         """Set currency suffix"""
-        await self.config.guild(ctx.guild).currency.set(currency)
-        await ctx.send(f"Currency suffix has been changed to {currency}")
+        await bank.set_currency_name(currency, ctx.guild)
+        await ctx.send(f"Currency name has been changed to {currency}")
 
     @setserver.command()
     @commands.guild_only()
@@ -104,7 +104,7 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def getserversettings(self, ctx):
         """Get current server-wide settings"""
-        currency = await self.config.guild(ctx.guild).currency()
+        currency = await bank.get_currency_name(ctx.guild)
         money_per_minute = await self.config.guild(ctx.guild).moneyPerMin()
         event_channel_id = await self.config.guild(ctx.guild).eventChannel()
         await ctx.send(f"Currency: {currency}\nMoneyPerMinute: {money_per_minute}\nEventChannelID: {event_channel_id}")
@@ -120,8 +120,8 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     async def get(self, ctx, member: discord.Member):
         """Get balance for member"""
-        balance = await self.config.member(member).balance()
-        currency = await self.config.guild(ctx.guild).currency()
+        currency = await bank.get_currency_name(ctx.guild)
+        balance = await bank.get_balance(member)
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
         pre = f"{member.name} has a {balance} {currency} balance\n"
         minutes_left = abs(balance / money_per_min)
@@ -136,14 +136,15 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def set(self, ctx, member: discord.Member, balance_amount: int):
         """Set balance for member"""
-        await self.config.member(member).balance.set(balance_amount)
+        await bank.set_balance(member, balance_amount)
 
     @balance.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def clear(self, ctx, member: discord.Member):
         """clear balance for member"""
-        await self.config.member(member).balance.set(0)
+        await bank.set_balance(member, 0)
+        await ctx.send(f"Set {member.name}'s balance to 0")
 
     @commands.command()
     @commands.guild_only()
@@ -154,10 +155,9 @@ class MuteForMoney(commands.Cog):
         donated += amount
         await self.config.member(donor).donated.set(donated)
 
-        balance = await self.config.member(recipient).balance()
+        balance = await bank.get_balance(recipient)
         balance += amount
-        await self.config.member(recipient).balance.set(balance)
-
+        await bank.set_balance(recipient, balance)
         await ctx.send(f"Balance changed for {recipient} by {amount}")
 
     @commands.command()
@@ -166,19 +166,17 @@ class MuteForMoney(commands.Cog):
     async def multidonation(self, ctx, donor: discord.Member, amount: int, all_recipients):
         """Add donation from donor to multiple recipients evenly"""
         recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
-        created_user = False
         divided_amount = amount / len(recipients)
-        users = await self.config.guild(ctx.guild).users()
+
+        donated = await self.config.member(donor).donated()
+        donated += amount
+        await self.config.member(donor).donated.set(donated)
+
         for recipient in recipients:
-            if not users.get(str(recipient.id)):
-                created_user = True
-                await self.create_user(ctx, recipient)
-        if created_user:
-            users = await self.config.guild(ctx.guild).users()
-        users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
-        for recipient in recipients:
-            users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + divided_amount
-        await self.config.guild(ctx.guild).users.set(users)
+            balance = await bank.get_balance(recipient)
+            balance += amount
+            await bank.set_balance(recipient, balance)
+
         await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
     @commands.command()
@@ -189,51 +187,37 @@ class MuteForMoney(commands.Cog):
         channelid = await self.config.guild(ctx.guild).eventChannel()
         channel = ctx.message.guild.get_channel(channelid)
         recipients = [member for member in channel.members if str(member.id) != str(donor.id)]
-        created_user = False
         divided_amount = amount / len(recipients)
-        users = await self.config.guild(ctx.guild).users()
+
+        donated = await self.config.member(donor).donated()
+        donated += amount
+        await self.config.member(donor).donated.set(donated)
+
         for recipient in recipients:
-            if not users.get(str(recipient.id)):
-                created_user = True
-                await self.create_user(ctx, recipient)
-        if created_user:
-            users = await self.config.guild(ctx.guild).users()
-        users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
-        for recipient in recipients:
-            users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + divided_amount
-        await self.config.guild(ctx.guild).users.set(users)
+            balance = await bank.get_balance(recipient)
+            balance += amount
+            await bank.set_balance(recipient, balance)
+
         await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
     # Backend Functions
-    async def create_user(self, ctx, member: discord.Member):
-        user = {
-            "balance": 0,
-            "donated": 0,
-            "on_hold": False
-        }
-        users = await self.config.guild(ctx.guild).users()
-        users[str(member.id)] = user
-        await self.config.guild(ctx.guild).users.set(users)
-
     async def live_event(self, ctx):
         while True:
             sleep(60)
             channelid = await self.config.guild(ctx.guild).eventChannel()
             channel = ctx.message.guild.get_channel(channelid)
-            users = await self.config.guild(ctx.guild).users()
             money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
             for participant in channel.members:
-                user = users[str(participant.id)]
+                on_hold = await self.config.member(participant).on_hold()
+                balance = await bank.get_balance(participant)
                 overwrites = channel.overwrites_for(participant)
-                if not user["on_hold"]:
-                    if -money_per_min < user["balance"] < 0:
-                        user["balance"] = 0
-                    elif user["balance"] < -money_per_min:
-                        user["balance"] -= -money_per_min
-                    if not overwrites.speak and user['balance'] >= 0:
+                if not on_hold:
+                    if -money_per_min < balance < 0:
+                        balance = 0
+                    elif balance < -money_per_min:
+                        balance -= -money_per_min
+                    if not overwrites.speak and balance >= 0:
                         overwrites.speak = True
-                    elif overwrites.speak and user['balance'] < 0:
+                    elif overwrites.speak and balance < 0:
                         overwrites.speak = False
-                    users[str(participant.id)] = user
-            await self.config.guild(ctx.guild).users.set(users)
-
+                    await bank.set_balance(participant, balance)
