@@ -56,7 +56,7 @@ class MuteForMoney(commands.Cog):
     @mfm.group()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def set(self, ctx):
+    async def set(self, ctx: commands.Context):
         """set server-wide settings"""
         pass
 
@@ -73,7 +73,7 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def moneypermin(self, ctx, moneypermin: int):
         """Set set amount of money worth 1 minute of mute"""
-        await self.config.guild(ctx.guild).currency.set(moneypermin)
+        await self.config.guild(ctx.guild).moneyPerMin.set(moneypermin)
         await ctx.send(f"Money per minute set to {moneypermin}/min")
 
     @commands.group()
