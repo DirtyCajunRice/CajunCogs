@@ -11,7 +11,8 @@ class MuteForMoney(commands.Cog):
         default_guild = {
             "users": {},
             "moneyPerMin": 0,
-            "currency": "USD"
+            "currency": "USD",
+            "eventChannel": None
         }
         self.config.register_guild(**default_guild)
 
@@ -72,9 +73,17 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def moneypermin(self, ctx, moneypermin: int):
-        """Set set amount of money worth 1 minute of mute"""
+        """Set amount of money worth 1 minute of mute"""
         await self.config.guild(ctx.guild).moneyPerMin.set(moneypermin)
         await ctx.send(f"Money per minute set to {moneypermin}/min")
+
+    @setserver.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def channel(self, ctx, channelid: int):
+        """Set event voice channel"""
+        await self.config.guild(ctx.guild).eventChannel.set(channelid)
+        await ctx.send(f"Event ChannelId set!")
 
     @commands.command()
     @commands.guild_only()
@@ -98,7 +107,6 @@ class MuteForMoney(commands.Cog):
         """Get balance for member"""
         users = await self.config.guild(ctx.guild).users()
         if users.get(str(member.id)):
-            print('yes user')
             currency = await self.config.guild(ctx.guild).currency()
             money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
             balance = users[str(member.id)]['balance']
@@ -141,10 +149,9 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def donation(self, ctx, donor: discord.Member, amount: int, recipient: discord.Member):
-        """Add donation from donator to donatee"""
+        """Add donation from donor to recipient"""
         created_user = False
         users = await self.config.guild(ctx.guild).users()
-        print(users)
         for user in [donor, recipient]:
             if not users.get(str(user.id)):
                 created_user = True
@@ -159,10 +166,46 @@ class MuteForMoney(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def massdonation(self, ctx, donor: discord.Member, amount: int, recipients):
-        """Add donation from donator to donatee"""
-        for recipient in ctx.message.mentions:
-            print(recipient.name)
+    async def multidonation(self, ctx, donor: discord.Member, amount: int, all_recipients):
+        """Add donation from donor to multiple recipients evenly"""
+        recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
+        created_user = False
+        divided_amount = amount / len(recipients)
+        users = await self.config.guild(ctx.guild).users()
+        for recipient in recipients:
+            if not users.get(str(recipient.id)):
+                created_user = True
+                await self.create_user(ctx, recipient)
+        if created_user:
+            users = await self.config.guild(ctx.guild).users()
+        users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
+        for recipient in recipients:
+            users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + divided_amount
+        await self.config.guild(ctx.guild).users.set(users)
+        await ctx.send(f"Balance changed for all recipients by {divided_amount}")
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def channeldonation(self, ctx, donor: discord.Member, amount: int):
+        """Add donation from donor to entire channel (except donor)"""
+        channelid = await self.config.guild(ctx.guild).eventChannel()
+        channel = await self.to_channel(channelid)
+        #recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
+        #created_user = False
+        #divided_amount = amount / len(recipients)
+        #users = await self.config.guild(ctx.guild).users()
+        #for recipient in recipients:
+        #    if not users.get(str(recipient.id)):
+        #        created_user = True
+        #        await self.create_user(ctx, recipient)
+        #if created_user:
+        #    users = await self.config.guild(ctx.guild).users()
+        #users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
+        #for recipient in recipients:
+        #    users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + divided_amount
+        #await self.config.guild(ctx.guild).users.set(users)
+        #await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
     # Backend Functions
     async def create_user(self, ctx, member: discord.Member):
@@ -173,3 +216,7 @@ class MuteForMoney(commands.Cog):
         users = await self.config.guild(ctx.guild).users()
         users[str(member.id)] = user
         await self.config.guild(ctx.guild).users.set(users)
+
+    async def to_channel(self, channel: discord.VoiceChannel):
+        print(channel)
+        return channel
