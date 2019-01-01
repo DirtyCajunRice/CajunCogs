@@ -131,12 +131,13 @@ class MuteForMoney(commands.Cog):
         insurance = await self.config.member(member).insurance()
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
         pre = f"{member.name} has:\n   {balance} {currency} debt\n   {insurance} {currency} insurance\n\n"
+        silence_minutes = balance / money_per_min if balance / money_per_min != 0 else 0
         if balance == 0 and insurance > 0:
             statement = pre + f"They are safe for {insurance / money_per_min} minutes"
         elif balance == 0 and insurance == 0:
             statement = pre + f"They are riding the 0 line!"
         else:
-            statement = pre + f"You can continue enjoying their sweet silence for {balance / money_per_min} minutes"
+            statement = pre + f"You can continue enjoying their sweet silence for {silence_minutes} minutes"
         await ctx.send(statement)
 
     @balance.command()
