@@ -316,6 +316,7 @@ class MuteForMoney(commands.Cog):
                 print(f"{participant.name} balance: {balance}")
                 overwrites = channel.overwrites_for(participant)
                 print(f"{participant.name} overwrites: {overwrites}")
+                print(f"{overwrites.speak}")
                 if not on_hold:
                     if money_per_min > balance > 0:
                         balance = 0
@@ -324,11 +325,14 @@ class MuteForMoney(commands.Cog):
                         balance -= money_per_min
                         print(f"Balance for {participant.name} reduced by {money_per_min}")
                         print(f"{participant.name} new balance is {money_per_min}")
-                    if not overwrites.speak and balance == 0:
+                    if overwrites.speak and balance == 0:
                         print(f"Unmuting {participant.name}")
                         overwrites.speak = True
                     elif overwrites.speak and balance > 0:
                         print(f"Muting {participant.name}")
                         overwrites.speak = False
                     await bank.set_balance(participant, balance)
-                    await ctx.bot.edit_channel_permissions(channel, participant, overwrites)
+                    try:
+                        await ctx.bot.edit_channel_permissions(channel, participant, overwrites)
+                    except Exception as e:
+                        print(e)
