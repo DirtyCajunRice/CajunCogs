@@ -303,37 +303,33 @@ class MuteForMoney(commands.Cog):
     # Backend Functions
     async def live_event(self, ctx):
         while True:
-            print(f"sleeping for 60 seconds")
             await asyncio.sleep(60)
-            print(f"Iterating over participants")
             channelid = await self.config.guild(ctx.guild).eventChannel()
             channel = ctx.message.guild.get_channel(channelid)
             money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
-            for participant in channel.members:
-                on_hold = await self.config.member(participant).on_hold()
-                print(f"{participant.name} on hold: {on_hold}")
-                balance = await bank.get_balance(participant)
-                print(f"{participant.name} balance: {balance}")
-                overwrites = channel.overwrites_for(participant)
-                print(f"{participant.name} overwrites.speak: {overwrites.speak}")
+            for member in channel.members:
+                on_hold = await self.config.member(member).on_hold()
+                balance = await bank.get_balance(member)
+                overwrites = channel.overwrites_for(member)
                 if not on_hold:
                     if money_per_min > balance > 0:
                         balance = 0
-                        print(f"setting balance for {participant.name} to 0")
                     elif balance > money_per_min:
                         balance -= money_per_min
-                        print(f"Balance for {participant.name} reduced by {money_per_min}")
-                        print(f"{participant.name} new balance is {balance}")
+
                     if overwrites.speak is not None and overwrites.speak is False and balance == 0:
-                        print(f"Unmuting {participant.name}")
                         overwrites.speak = True
-                        await participant.edit(mute=False)
                     elif (overwrites.speak is None or overwrites.speak is True) and balance > 0:
-                        print(f"Muting {participant.name}")
                         overwrites.speak = False
-                        await participant.edit(mute=True)
-                    await bank.set_balance(participant, balance)
+
+                    if member.voice.mute is not None and member.voice.mute is True and balance == 0:
+                        await member.edit(mute=False)
+                    elif (member.voice.mute is None or member.voice.mute is False) and balance > 0:
+                        await member.edit(mute=True)
+
+                    await bank.set_balance(member, balance)
+
                     try:
-                        await channel.set_permissions(participant, overwrite=overwrites)
+                        await channel.set_permissions(member, overwrite=overwrites)
                     except Exception as e:
                         print(e)
