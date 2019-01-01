@@ -114,10 +114,10 @@ class MuteForMoney(commands.Cog):
         """Add donation from donator to donatee"""
         users = await self.config.guild(ctx.guild).users()
         for user in [donor, recipient]:
-            if not users.get(user):
+            if not users.get(user.id):
                 await self.create_user(ctx, user)
-        users[donor]["donated"] = users[donor]["donated"] + amount
-        users[recipient]["balance"] = users[recipient]["balance"] + amount
+        users[donor.id]["donated"] = users[donor.id]["donated"] + amount
+        users[recipient.id]["balance"] = users[recipient.id]["balance"] + amount
         await self.config.guild(ctx.guild).users.set(users)
         await ctx.send(f"Balance changed for {recipient} by {amount}")
 
