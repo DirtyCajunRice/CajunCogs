@@ -122,21 +122,16 @@ class MuteForMoney(commands.Cog):
         """Get balance for member"""
         currency = await bank.get_currency_name(ctx.guild)
         balance = await bank.get_balance(member)
+        insurance = await self.config.member(member).insurance()
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
-        pre = f"{member.name} has a {balance} {currency} balance\n"
-        minutes_left = abs(balance / money_per_min)
-        if balance >= 0:
-            statement = pre + f"They are safe for {minutes_left} minutes"
+        pre = f"{member.name} has:\n   {balance} {currency} debt\n   {insurance} {currency} insurance"
+        if balance == 0 and insurance > 0:
+            statement = pre + f"They are safe for {insurance / money_per_min} minutes"
+        elif balance == 0 and insurance == 0:
+            statement = pre + f"They are riding the 0 line!"
         else:
-            statement = pre + f"You can continue enjoying their sweet silence for {minutes_left} minutes"
+            statement = pre + f"You can continue enjoying their sweet silence for {balance / money_per_min} minutes"
         await ctx.send(statement)
-
-    @balance.command()
-    @commands.guild_only()
-    @checks.admin_or_permissions(manage_roles=True)
-    async def set(self, ctx, member: discord.Member, balance_amount: int):
-        """Set balance for member"""
-        await bank.set_balance(member, balance_amount)
 
     @balance.command()
     @commands.guild_only()
@@ -160,10 +155,95 @@ class MuteForMoney(commands.Cog):
         await bank.set_balance(recipient, balance)
         await ctx.send(f"Balance changed for {recipient} by {amount}")
 
-    @commands.command()
+    @commands.group()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def multidonation(self, ctx, donor: discord.Member, amount: int, all_recipients):
+    async def insurance(self, ctx: commands.Context):
+        """Self balance removal/Insurance addition"""
+        pass
+
+    @insurance.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def self(self, ctx, member: discord.Member, amount: int):
+        """Set balance for member"""
+        balance = await bank.get_balance(member)
+        insurance = await self.config.member(member).insurance()
+
+        donated = await self.config.member(member).donated()
+        donated += amount
+        await self.config.member(member).donated.set(donated)
+
+        if amount < balance > 0:
+            await bank.withdraw_credits(member, amount)
+        elif balance > 0:
+            amount -= balance
+            await bank.set_balance(member, 0)
+            await self.config.member(member).insurance.set(amount)
+        else:
+            insurance += amount
+            await self.config.member(member).insurance.set(insurance)
+
+        await ctx.send(f"done.")
+
+    @insurance.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def donation(self, ctx, donor: discord.Member, amount: int, recipient: discord.Member):
+        """Donation balance removal/Insurance addition"""
+        balance = await bank.get_balance(recipient)
+        insurance = await self.config.member(recipient).insurance()
+
+        donated = await self.config.member(donor).donated()
+        donated += amount
+        await self.config.member(donor).donated.set(donated)
+
+        if amount < balance > 0:
+            await bank.withdraw_credits(recipient, amount)
+        elif balance > 0:
+            amount -= balance
+            await bank.set_balance(recipient, 0)
+            await self.config.member(recipient).insurance.set(amount)
+        else:
+            insurance += amount
+            await self.config.member(recipient).insurance.set(insurance)
+
+        await ctx.send(f"done.")
+
+    @commands.group()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def donation(self, ctx: commands.Context):
+        """Self balance removal/Insurance addition"""
+        pass
+
+    @donation.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def single(self, ctx, donor: discord.Member, amount: int, recipient: discord.Member):
+        """Donation balance addition/Insurance removal"""
+        insurance = await self.config.member(recipient).insurance()
+
+        donated = await self.config.member(donor).donated()
+        donated += amount
+        await self.config.member(donor).donated.set(donated)
+
+        if amount < insurance > 0:
+            insurance -= amount
+            await self.config.member(recipient).insurance.set(insurance)
+        elif insurance > 0:
+            amount -= insurance
+            await self.config.member(recipient).insurance.set(0)
+
+        if amount:
+            await bank.deposit_credits(recipient, amount)
+
+        await ctx.send(f"done.")
+
+    @donation.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def multi(self, ctx, donor: discord.Member, amount: int, all_recipients):
         """Add donation from donor to multiple recipients evenly"""
         recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
         divided_amount = amount / len(recipients)
@@ -173,16 +253,23 @@ class MuteForMoney(commands.Cog):
         await self.config.member(donor).donated.set(donated)
 
         for recipient in recipients:
-            balance = await bank.get_balance(recipient)
-            balance += amount
-            await bank.set_balance(recipient, balance)
+            insurance = await self.config.member(recipient).insurance()
+            if amount < insurance > 0:
+                insurance -= amount
+                await self.config.member(recipient).insurance.set(insurance)
+            elif insurance > 0:
+                amount -= insurance
+                await self.config.member(recipient).insurance.set(0)
+
+            if amount:
+                await bank.deposit_credits(recipient, amount)
 
         await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
-    @commands.command()
+    @donation.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def channeldonation(self, ctx, donor: discord.Member, amount: int):
+    async def channel(self, ctx, donor: discord.Member, amount: int):
         """Add donation from donor to entire channel evenly (except donor)"""
         channelid = await self.config.guild(ctx.guild).eventChannel()
         channel = ctx.message.guild.get_channel(channelid)
@@ -194,9 +281,16 @@ class MuteForMoney(commands.Cog):
         await self.config.member(donor).donated.set(donated)
 
         for recipient in recipients:
-            balance = await bank.get_balance(recipient)
-            balance += amount
-            await bank.set_balance(recipient, balance)
+            insurance = await self.config.member(recipient).insurance()
+            if amount < insurance > 0:
+                insurance -= amount
+                await self.config.member(recipient).insurance.set(insurance)
+            elif insurance > 0:
+                amount -= insurance
+                await self.config.member(recipient).insurance.set(0)
+
+            if amount:
+                await bank.deposit_credits(recipient, amount)
 
         await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
