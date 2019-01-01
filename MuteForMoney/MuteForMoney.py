@@ -220,7 +220,7 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def donation(self, ctx: commands.Context):
-        """Self balance removal/Insurance addition"""
+        """Donation options"""
         pass
 
     @donation.command()
@@ -327,11 +327,11 @@ class MuteForMoney(commands.Cog):
                     if overwrites.speak is not None and overwrites.speak is False and balance == 0:
                         print(f"Unmuting {participant.name}")
                         overwrites.speak = True
-                        await participant.edit(mute=True)
+                        await participant.edit(mute=False)
                     elif (overwrites.speak is None or overwrites.speak is True) and balance > 0:
                         print(f"Muting {participant.name}")
                         overwrites.speak = False
-                        await participant.edit(mute=False)
+                        await participant.edit(mute=True)
                     await bank.set_balance(participant, balance)
                     try:
                         await channel.set_permissions(participant, overwrite=overwrites)
