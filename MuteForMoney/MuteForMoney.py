@@ -53,6 +53,29 @@ class MuteForMoney(commands.Cog):
         await self.config.guild(ctx.guild).users.set({})
         await ctx.send("All users deleted")
 
+    @mfm.group()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def set(self, ctx):
+        """set server-wide settings"""
+        pass
+
+    @set.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def currency(self, ctx, currency):
+        """Set currency suffix"""
+        await self.config.guild(ctx.guild).currency.set(currency)
+        await ctx.send(f"Currency suffix has been changed to {currency}")
+
+    @set.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def moneypermin(self, ctx, moneypermin: int):
+        """Set set amount of money worth 1 minute of mute"""
+        await self.config.guild(ctx.guild).currency.set(moneypermin)
+        await ctx.send(f"Money per minute set to {moneypermin}/min")
+
     @commands.group()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
