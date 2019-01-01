@@ -321,6 +321,7 @@ class MuteForMoney(commands.Cog):
                         balance -= money_per_min
                         print(f"Balance for {participant.name} reduced by {money_per_min}")
                         print(f"{participant.name} new balance is {money_per_min}")
+                        print(overwrites.speak)
                     if not overwrites.speak and balance == 0:
                         print(f"Unmuting {participant.name}")
                         overwrites.speak = True
