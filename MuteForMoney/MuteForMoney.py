@@ -56,7 +56,7 @@ class MuteForMoney(commands.Cog):
     @mfm.group()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def set(self, ctx: commands.Context):
+    async def set(self, ctx: mfm.Context):
         """set server-wide settings"""
         pass
 
