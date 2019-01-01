@@ -328,7 +328,7 @@ class MuteForMoney(commands.Cog):
                     if overwrites.speak is not None and overwrites.speak is False and balance == 0:
                         print(f"Unmuting {participant.name}")
                         overwrites.speak = True
-                    elif overwrites.speak and balance > 0:
+                    elif not overwrites.speak and balance > 0:
                         print(f"Muting {participant.name}")
                         overwrites.speak = False
                     await bank.set_balance(participant, balance)
