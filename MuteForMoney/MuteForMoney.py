@@ -1,6 +1,6 @@
 import discord
 from time import sleep
-from redbot.core import commands, checks, Config
+from redbot.core import bank, commands, checks, Config
 
 
 class MuteForMoney(commands.Cog):
@@ -10,12 +10,17 @@ class MuteForMoney(commands.Cog):
         self.config = Config.get_conf(self, identifier=8008135)
         self.task = None
         default_guild = {
-            "users": {},
+            'currency': 'USD',
             "moneyPerMin": 0,
-            "currency": "USD",
             "eventChannel": None
         }
+        default_member = {
+            "balance": 0,
+            "donated": 0,
+            "on_hold": False
+        }
         self.config.register_guild(**default_guild)
+        self.config.register_member(**default_member)
 
     @commands.group()
     @commands.guild_only()
@@ -52,7 +57,7 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def reset(self, ctx):
         """Reset, deleting all users"""
-        await self.config.guild(ctx.guild).users.set({})
+        await self.config.clear_all_members(ctx.guild)
         await ctx.send("All users deleted")
 
     @commands.group()
@@ -115,21 +120,16 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     async def get(self, ctx, member: discord.Member):
         """Get balance for member"""
-        users = await self.config.guild(ctx.guild).users()
-        if users.get(str(member.id)):
-            currency = await self.config.guild(ctx.guild).currency()
-            money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
-            balance = users[str(member.id)]['balance']
-            pre = f"{member.name} has a {balance} {currency} balance\n"
-            minutes_left = abs(balance / money_per_min)
-            if balance >= 0:
-                statement = pre + f"They are safe for {minutes_left} minutes"
-            else:
-                statement = pre + f"You can continue enjoying their sweet silence for {minutes_left} minutes"
-            await self.config.guild(ctx.guild).users.set(users)
-            await ctx.send(statement)
+        member_data = await self.config.member(member)
+        currency = await self.config.guild(ctx.guild).currency()
+        money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
+        pre = f"{member.name} has a {member_data['balance']} {currency} balance\n"
+        minutes_left = abs(member_data['balance'] / money_per_min)
+        if member_data['balance'] >= 0:
+            statement = pre + f"They are safe for {minutes_left} minutes"
         else:
-            await ctx.send(f"{member.name} has not participated in the event")
+            statement = pre + f"You can continue enjoying their sweet silence for {minutes_left} minutes"
+        await ctx.send(statement)
 
     @balance.command()
     @commands.guild_only()
