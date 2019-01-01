@@ -83,8 +83,9 @@ class MuteForMoney(commands.Cog):
     async def channel(self, ctx, channelid: int):
         """Set event voice channel"""
         try:
-            channel = ctx.message.server.get_channel(channelid)
-            if channel.type != discord.ChannelType.voice:
+            channel = ctx.message.guild.get_channel(channelid)
+            if channel.type != discord.VoiceChannel:
+                print(channel.type)
                 await ctx.send(f"{channel.name} is not a voice channel")
             else:
                 await ctx.send(f"{channel.name} set as event channel")
