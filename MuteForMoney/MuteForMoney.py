@@ -120,12 +120,12 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     async def get(self, ctx, member: discord.Member):
         """Get balance for member"""
-        member_data = await self.config.member(member)
+        balance = await self.config.member(member).balance()
         currency = await self.config.guild(ctx.guild).currency()
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
-        pre = f"{member.name} has a {member_data['balance']} {currency} balance\n"
-        minutes_left = abs(member_data['balance'] / money_per_min)
-        if member_data['balance'] >= 0:
+        pre = f"{member.name} has a {balance} {currency} balance\n"
+        minutes_left = abs(balance / money_per_min)
+        if balance >= 0:
             statement = pre + f"They are safe for {minutes_left} minutes"
         else:
             statement = pre + f"You can continue enjoying their sweet silence for {minutes_left} minutes"
