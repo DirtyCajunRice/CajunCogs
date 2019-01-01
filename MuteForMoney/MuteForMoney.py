@@ -8,7 +8,7 @@ class MuteForMoney(commands.Cog):
     def __init__(self):
         super().__init__()
         self.config = Config.get_conf(self, identifier=8008135)
-        self.task = None
+        self.tasks = {}
         default_guild = {
             "moneyPerMin": 0,
             "eventChannel": None
@@ -33,8 +33,8 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def start(self, ctx):
         """Start event"""
-        if not self.task:
-            self.task = ctx.bot.loop.create_task(self.live_event(ctx))
+        if not self.tasks.get(ctx.guild.id):
+            self.tasks[ctx.guild.id] = ctx.bot.loop.create_task(self.live_event(ctx))
             await ctx.send("Event started!")
         else:
             await ctx.send('Event already running')
@@ -44,9 +44,9 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def stop(self, ctx):
         """Stop event"""
-        if self.task:
-            self.task.cancel()
-            self.task = None
+        if self.tasks.get(ctx.guild.id):
+            self.tasks[ctx.guild.id].cancel()
+            del self.tasks[ctx.guild.id]
             await ctx.send("Event Ended!")
         else:
             await ctx.send("Event not currently running")
@@ -253,7 +253,7 @@ class MuteForMoney(commands.Cog):
     async def multi(self, ctx, donor: discord.Member, amount: int, all_recipients):
         """Add donation from donor to multiple recipients evenly"""
         recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
-        divided_amount = amount / len(recipients)
+        divided_amount = int(amount / len(recipients))
 
         donated = await self.config.member(donor).donated()
         donated += amount
@@ -269,7 +269,7 @@ class MuteForMoney(commands.Cog):
                 await self.config.member(recipient).insurance.set(0)
 
             if amount:
-                await bank.deposit_credits(recipient, amount)
+                await bank.deposit_credits(recipient, divided_amount)
 
         await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
@@ -281,7 +281,7 @@ class MuteForMoney(commands.Cog):
         channelid = await self.config.guild(ctx.guild).eventChannel()
         channel = ctx.message.guild.get_channel(channelid)
         recipients = [member for member in channel.members if str(member.id) != str(donor.id)]
-        divided_amount = amount / len(recipients)
+        divided_amount = int(amount / len(recipients))
 
         donated = await self.config.member(donor).donated()
         donated += amount
@@ -297,7 +297,7 @@ class MuteForMoney(commands.Cog):
                 await self.config.member(recipient).insurance.set(0)
 
             if amount:
-                await bank.deposit_credits(recipient, amount)
+                await bank.deposit_credits(recipient, divided_amount)
 
         await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
