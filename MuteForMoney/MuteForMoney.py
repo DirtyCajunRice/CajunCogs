@@ -1,5 +1,5 @@
 import discord
-from time import sleep
+import asyncio
 from redbot.core import bank, commands, checks, Config
 
 
@@ -203,7 +203,7 @@ class MuteForMoney(commands.Cog):
     # Backend Functions
     async def live_event(self, ctx):
         while True:
-            sleep(60)
+            await asyncio.sleep(60)
             channelid = await self.config.guild(ctx.guild).eventChannel()
             channel = ctx.message.guild.get_channel(channelid)
             money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
