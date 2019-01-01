@@ -114,6 +114,7 @@ class MuteForMoney(commands.Cog):
         """Add donation from donator to donatee"""
         created_user = False
         users = await self.config.guild(ctx.guild).users()
+        print(users)
         for user in [donor, recipient]:
             if not users.get(user.id):
                 created_user = True
@@ -124,6 +125,16 @@ class MuteForMoney(commands.Cog):
         users[recipient.id]["balance"] = users[recipient.id]["balance"] + amount
         await self.config.guild(ctx.guild).users.set(users)
         await ctx.send(f"Balance changed for {recipient} by {amount}")
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def getguild(self, ctx):
+        """Add donation from donator to donatee"""
+        users = await self.config.guild(ctx.guild).users()
+        print(users)
+        await ctx.send(f"{users}")
+
 
     # Backend Functions
     async def create_user(self, ctx, member: discord.Member):
