@@ -310,17 +310,22 @@ class MuteForMoney(commands.Cog):
             channel = ctx.message.guild.get_channel(channelid)
             money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
             for participant in channel.members:
-                print(participant.name)
                 on_hold = await self.config.member(participant).on_hold()
                 balance = await bank.get_balance(participant)
                 overwrites = channel.overwrites_for(participant)
                 if not on_hold:
-                    if -money_per_min < balance < 0:
+                    if money_per_min > balance > 0:
                         balance = 0
-                    elif balance < -money_per_min:
-                        balance -= -money_per_min
-                    if not overwrites.speak and balance >= 0:
+                        print(f"setting balance for {participant.name} to 0")
+                    elif balance > money_per_min:
+                        balance -= money_per_min
+                        print(f"Balance for {participant.name} reduced by {money_per_min}")
+                        print(f"{participant.name} new balance is {money_per_min}")
+                    if not overwrites.speak and balance == 0:
+                        print(f"Unmuting {participant.name}")
                         overwrites.speak = True
-                    elif overwrites.speak and balance < 0:
+                    elif overwrites.speak and balance > 0:
+                        print(f"Muting {participant.name}")
                         overwrites.speak = False
                     await bank.set_balance(participant, balance)
+                    await ctx.bot.edit_channel_permissions(channel, participant, overwrites)
