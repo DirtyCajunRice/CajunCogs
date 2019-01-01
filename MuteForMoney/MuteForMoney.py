@@ -304,19 +304,19 @@ class MuteForMoney(commands.Cog):
     # Backend Functions
     async def live_event(self, ctx):
         while True:
-            await asyncio.sleep(60)
+            await asyncio.sleep(15)
             channelid = await self.config.guild(ctx.guild).eventChannel()
             channel = ctx.message.guild.get_channel(channelid)
-            money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
+            money_per = int(await self.config.guild(ctx.guild).moneyPerMin() / 4)
             for member in channel.members:
                 on_hold = await self.config.member(member).on_hold()
                 balance = await bank.get_balance(member)
                 overwrites = channel.overwrites_for(member)
                 if not on_hold:
-                    if money_per_min > balance > 0:
+                    if money_per > balance > 0:
                         balance = 0
-                    elif balance > money_per_min:
-                        balance -= money_per_min
+                    elif balance > money_per:
+                        balance -= money_per
 
                     if overwrites.speak is not None and overwrites.speak is False and balance == 0:
                         overwrites.speak = True
