@@ -159,11 +159,10 @@ class MuteForMoney(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def massdonation(self, ctx, donor: discord.Member, amount: int, *, recipients):
+    async def massdonation(self, ctx, donor: discord.Member, amount: int, recipients):
         """Add donation from donator to donatee"""
-        for recipient in recipients:
-            print(recipient)
-            
+        for recipient in ctx.message.mentions:
+            print(recipient.name)
 
     # Backend Functions
     async def create_user(self, ctx, member: discord.Member):
