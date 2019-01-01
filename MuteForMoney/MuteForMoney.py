@@ -190,7 +190,9 @@ class MuteForMoney(commands.Cog):
     async def channeldonation(self, ctx, donor: discord.Member, amount: int):
         """Add donation from donor to entire channel (except donor)"""
         channelid = await self.config.guild(ctx.guild).eventChannel()
-        channel = await self.to_channel(channelid)
+        channel = await self.channelconvert(channelid)
+        for member in channel.members:
+            print(member)
         #recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
         #created_user = False
         #divided_amount = amount / len(recipients)
@@ -217,6 +219,5 @@ class MuteForMoney(commands.Cog):
         users[str(member.id)] = user
         await self.config.guild(ctx.guild).users.set(users)
 
-    async def to_channel(self, channel: discord.VoiceChannel):
-        print(channel)
+    async def channelconvert(self, channel: discord.VoiceChannel):
         return channel
