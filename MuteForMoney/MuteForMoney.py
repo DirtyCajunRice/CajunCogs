@@ -73,9 +73,10 @@ class MuteForMoney(commands.Cog):
     async def currency(self, ctx, currency):
         """Set currency suffix"""
         default_balance = await bank.get_default_balance(ctx.guild)
+        is_global = await bank.is_global()
         if default_balance < 0:
             await bank.set_default_balance(0, ctx.guild)
-        if bank.is_global():
+        if is_global:
             await bank.set_global(False)
         await bank.set_currency_name(currency, ctx.guild)
         await ctx.send(f"Currency name has been changed to {currency}")
@@ -129,7 +130,7 @@ class MuteForMoney(commands.Cog):
         balance = await bank.get_balance(member)
         insurance = await self.config.member(member).insurance()
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
-        pre = f"{member.name} has:\n   {balance} {currency} debt\n   {insurance} {currency} insurance"
+        pre = f"{member.name} has:\n   {balance} {currency} debt\n   {insurance} {currency} insurance\n\n"
         if balance == 0 and insurance > 0:
             statement = pre + f"They are safe for {insurance / money_per_min} minutes"
         elif balance == 0 and insurance == 0:
