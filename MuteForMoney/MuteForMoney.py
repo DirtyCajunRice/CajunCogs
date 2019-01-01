@@ -1,4 +1,5 @@
 import discord
+from time import sleep
 from redbot.core import commands, checks, Config
 
 
@@ -29,7 +30,7 @@ class MuteForMoney(commands.Cog):
     async def start(self, ctx):
         """Start event"""
         if not self.task:
-            self.task = ctx.bot.loop.create_task('placeholder')
+            self.task = ctx.bot.loop.create_task(self.live_event(ctx))
             await ctx.send("Event started!")
         else:
             await ctx.send('Event already running')
@@ -85,14 +86,13 @@ class MuteForMoney(commands.Cog):
         try:
             channel = ctx.message.guild.get_channel(channelid)
             if not isinstance(channel, discord.VoiceChannel):
-                print(channel.type)
                 await ctx.send(f"{channel.name} is not a voice channel")
             else:
                 await ctx.send(f"{channel.name} set as event channel")
                 await self.config.guild(ctx.guild).eventChannel.set(channel.id)
         except Exception as e:
             print(e)
-            await ctx.send(f"i cannot find a channel with id {channelid}")
+            await ctx.send(f"i cannot find a voice channel with id {channelid}")
 
     @commands.command()
     @commands.guild_only()
@@ -101,7 +101,8 @@ class MuteForMoney(commands.Cog):
         """Get current server-wide settings"""
         currency = await self.config.guild(ctx.guild).currency()
         money_per_minute = await self.config.guild(ctx.guild).moneyPerMin()
-        await ctx.send(f"Currency: {currency}\nMoneyPerMinute: {money_per_minute}")
+        event_channel_id = await self.config.guild(ctx.guild).eventChannel()
+        await ctx.send(f"Currency: {currency}\nMoneyPerMinute: {money_per_minute}\nEventChannelID: {event_channel_id}")
 
     @commands.group()
     @commands.guild_only()
@@ -197,36 +198,55 @@ class MuteForMoney(commands.Cog):
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def channeldonation(self, ctx, donor: discord.Member, amount: int):
-        """Add donation from donor to entire channel (except donor)"""
+        """Add donation from donor to entire channel evenly (except donor)"""
         channelid = await self.config.guild(ctx.guild).eventChannel()
-        channel = ctx.message.server.get_channel(channelid)
-        for member in channel.voice_members:
-            print(member)
-        #recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
-        #created_user = False
-        #divided_amount = amount / len(recipients)
-        #users = await self.config.guild(ctx.guild).users()
-        #for recipient in recipients:
-        #    if not users.get(str(recipient.id)):
-        #        created_user = True
-        #        await self.create_user(ctx, recipient)
-        #if created_user:
-        #    users = await self.config.guild(ctx.guild).users()
-        #users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
-        #for recipient in recipients:
-        #    users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + divided_amount
-        #await self.config.guild(ctx.guild).users.set(users)
-        #await ctx.send(f"Balance changed for all recipients by {divided_amount}")
+        channel = ctx.message.guild.get_channel(channelid)
+        recipients = [member for member in channel.members if str(member.id) != str(donor.id)]
+        created_user = False
+        divided_amount = amount / len(recipients)
+        users = await self.config.guild(ctx.guild).users()
+        for recipient in recipients:
+            if not users.get(str(recipient.id)):
+                created_user = True
+                await self.create_user(ctx, recipient)
+        if created_user:
+            users = await self.config.guild(ctx.guild).users()
+        users[str(donor.id)]["donated"] = users[str(donor.id)]["donated"] + amount
+        for recipient in recipients:
+            users[str(recipient.id)]["balance"] = users[str(recipient.id)]["balance"] + divided_amount
+        await self.config.guild(ctx.guild).users.set(users)
+        await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
     # Backend Functions
     async def create_user(self, ctx, member: discord.Member):
         user = {
             "balance": 0,
-            "donated": 0
+            "donated": 0,
+            "on_hold": False
         }
         users = await self.config.guild(ctx.guild).users()
         users[str(member.id)] = user
         await self.config.guild(ctx.guild).users.set(users)
 
-    async def channelconvert(self, channel: discord.VoiceChannel):
-        return channel
+    async def live_event(self, ctx):
+        while True:
+            sleep(60)
+            channelid = await self.config.guild(ctx.guild).eventChannel()
+            channel = ctx.message.guild.get_channel(channelid)
+            users = await self.config.guild(ctx.guild).users()
+            money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
+            for participant in channel.members:
+                user = users[str(participant.id)]
+                overwrites = channel.overwrites_for(participant)
+                if not user["on_hold"]:
+                    if -money_per_min < user["balance"] < 0:
+                        user["balance"] = 0
+                    elif user["balance"] < -money_per_min:
+                        user["balance"] -= -money_per_min
+                    if not overwrites.speak and user['balance'] >= 0:
+                        overwrites.speak = True
+                    elif overwrites.speak and user['balance'] < 0:
+                        overwrites.speak = False
+                    users[str(participant.id)] = user
+            await self.config.guild(ctx.guild).users.set(users)
+
