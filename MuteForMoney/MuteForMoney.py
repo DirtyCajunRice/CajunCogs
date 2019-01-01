@@ -303,11 +303,14 @@ class MuteForMoney(commands.Cog):
     # Backend Functions
     async def live_event(self, ctx):
         while True:
+            print(f"sleeping for 60 seconds")
             await asyncio.sleep(60)
+            print(f"Iterating over participants")
             channelid = await self.config.guild(ctx.guild).eventChannel()
             channel = ctx.message.guild.get_channel(channelid)
             money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
             for participant in channel.members:
+                print(participant.name)
                 on_hold = await self.config.member(participant).on_hold()
                 balance = await bank.get_balance(participant)
                 overwrites = channel.overwrites_for(participant)
