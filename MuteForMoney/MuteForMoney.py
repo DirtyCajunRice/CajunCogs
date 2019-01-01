@@ -131,10 +131,10 @@ class MuteForMoney(commands.Cog):
         insurance = await self.config.member(member).insurance()
         donated = await self.config.member(member).donated()
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
-        
+        minutes_left = insurance / money_per_min if insurance else balance / money_per_min
+
         title = "User Balances"
         minutes_title = "insured" if insurance > 0 else "silenced"
-        minutes_value = insurance if insurance > 0 else balance
         foot = f'Called by {ctx.author}'
         embed = discord.Embed(title=title, colour=ctx.author.colour)
         embed.set_author(name=member.name, icon_url=member.avatar_url)
@@ -142,7 +142,7 @@ class MuteForMoney(commands.Cog):
         embed.add_field(name="Debt:", value=f"{balance} {currency}", inline=True)
         embed.add_field(name="Insurance:", value=f"{insurance} {currency}", inline=True)
         embed.add_field(name="Donated:", value=f"{donated} {currency}", inline=True)
-        embed.add_field(name=f"Minutes left {minutes_title}", value=f"{minutes_value} minutes", inline=True)
+        embed.add_field(name=f"Minutes left {minutes_title}", value=f"{minutes_left} minutes", inline=True)
         await ctx.send(embed=embed)
 
     @balance.command()
