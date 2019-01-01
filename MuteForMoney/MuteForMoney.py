@@ -1,5 +1,6 @@
 import discord
 import asyncio
+from datetime import timedelta
 from redbot.core import bank, commands, checks, Config
 
 
@@ -132,9 +133,10 @@ class MuteForMoney(commands.Cog):
         donated = await self.config.member(member).donated()
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
         minutes_left = insurance / money_per_min if insurance else balance / money_per_min
-
+        formatted_left = await self.time_from_minutes(minutes_left)
+        
         title = "User Balances"
-        minutes_title = "insured" if insurance > 0 else "silenced"
+        minutes_title = "Insured" if insurance > 0 else "Silenced"
         foot = f'Called by {ctx.author}'
         embed = discord.Embed(title=title, colour=ctx.author.colour)
         embed.set_author(name=member.name, icon_url=member.avatar_url)
@@ -142,7 +144,7 @@ class MuteForMoney(commands.Cog):
         embed.add_field(name="Debt:", value=f"{balance} {currency}", inline=True)
         embed.add_field(name="Insurance:", value=f"{insurance} {currency}", inline=True)
         embed.add_field(name="Donated:", value=f"{donated} {currency}", inline=True)
-        embed.add_field(name=f"Minutes left {minutes_title}", value=f"{minutes_left} minutes", inline=True)
+        embed.add_field(name=f"Minutes Left {minutes_title}", value=f"{formatted_left}", inline=True)
         await ctx.send(embed=embed)
 
     @balance.command()
@@ -339,3 +341,15 @@ class MuteForMoney(commands.Cog):
                         await channel.set_permissions(member, overwrite=overwrites)
                     except Exception as e:
                         print(e)
+
+    async def time_from_minutes(self, mins):
+        secs = timedelta(minutes=mins).seconds
+        days = secs // 86400
+        hours = (secs - days * 86400) // 3600
+        minutes = (secs - days * 86400 - hours * 3600) // 60
+        seconds = secs - days * 86400 - hours * 3600 - minutes * 60
+        result = (f"{days} day{'s' if days != 1 else ''}" if days else "") + \
+                 (f"{hours} hour{'s' if hours != 1 else ''}" if hours else "") + \
+                 (f"{minutes} minute{'s' if minutes != 1 else ''}" if minutes else "") + \
+                 (f"{seconds} second{'s' if seconds != 1 else ''}" if seconds else "")
+        return result
