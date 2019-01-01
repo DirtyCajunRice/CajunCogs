@@ -72,6 +72,11 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def currency(self, ctx, currency):
         """Set currency suffix"""
+        default_balance = await bank.get_default_balance(ctx.guild)
+        if default_balance < 0:
+            await bank.set_default_balance(0, ctx.guild)
+        if bank.is_global():
+            await bank.set_global(False)
         await bank.set_currency_name(currency, ctx.guild)
         await ctx.send(f"Currency name has been changed to {currency}")
 
