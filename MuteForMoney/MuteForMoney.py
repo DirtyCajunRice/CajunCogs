@@ -150,10 +150,13 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def donation(self, ctx, donor: discord.Member, amount: int, recipient: discord.Member):
         """Add donation from donor to recipient"""
-        with await self.config.member(donor).donated() as donated:
-            donated += amount
-        with await self.config.member(recipient).balance() as balance:
-            balance += amount
+        donated = await self.config.member(donor).donated()
+        donated += amount
+        await self.config.member(donor).donated.set(donated)
+
+        balance = await self.config.member(recipient).balance()
+        balance += amount
+        await self.config.member(donor).balance.set(balance)
 
         await ctx.send(f"Balance changed for {recipient} by {amount}")
 
