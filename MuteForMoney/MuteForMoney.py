@@ -112,10 +112,14 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def donation(self, ctx, donor: discord.Member, amount: int, recipient: discord.Member):
         """Add donation from donator to donatee"""
+        created_user = False
         users = await self.config.guild(ctx.guild).users()
         for user in [donor, recipient]:
             if not users.get(user.id):
+                created_user = True
                 await self.create_user(ctx, user)
+        if created_user:
+            users = await self.config.guild(ctx.guild).users()
         users[donor.id]["donated"] = users[donor.id]["donated"] + amount
         users[recipient.id]["balance"] = users[recipient.id]["balance"] + amount
         await self.config.guild(ctx.guild).users.set(users)
