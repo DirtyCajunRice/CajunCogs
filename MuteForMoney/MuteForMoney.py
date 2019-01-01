@@ -82,8 +82,16 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def channel(self, ctx, channelid: int):
         """Set event voice channel"""
-        await self.config.guild(ctx.guild).eventChannel.set(channelid)
-        await ctx.send(f"Event ChannelId set!")
+        try:
+            channel = ctx.message.server.get_channel(channelid)
+            if channel.type != discord.ChannelType.voice:
+                await ctx.send(f"{channel.name} is not a voice channel")
+            else:
+                await ctx.send(f"{channel.name} set as event channel")
+                await self.config.guild(ctx.guild).eventChannel.set(channel.id)
+        except Exception as e:
+            print(e)
+            await ctx.send(f"i cannot find a channel with id {channelid}")
 
     @commands.command()
     @commands.guild_only()
@@ -190,8 +198,8 @@ class MuteForMoney(commands.Cog):
     async def channeldonation(self, ctx, donor: discord.Member, amount: int):
         """Add donation from donor to entire channel (except donor)"""
         channelid = await self.config.guild(ctx.guild).eventChannel()
-        channel = await self.channelconvert(channelid)
-        for member in channel.members:
+        channel = ctx.message.server.get_channel(channelid)
+        for member in channel.voice_members:
             print(member)
         #recipients = [member for member in ctx.message.mentions if str(member.id) != str(donor.id)]
         #created_user = False
