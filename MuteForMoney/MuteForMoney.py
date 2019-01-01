@@ -313,7 +313,7 @@ class MuteForMoney(commands.Cog):
                 balance = await bank.get_balance(member)
                 overwrites = channel.overwrites_for(member)
                 if not on_hold:
-                    if money_per > balance > 0:
+                    if money_per >= balance > 0:
                         balance = 0
                     elif balance > money_per:
                         balance -= money_per
