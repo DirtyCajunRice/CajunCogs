@@ -129,6 +129,7 @@ class MuteForMoney(commands.Cog):
         currency = await bank.get_currency_name(ctx.guild)
         balance = await bank.get_balance(member)
         insurance = await self.config.member(member).insurance()
+        donated = await self.config.member(member).donated()
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
         pre = f"{member.name} has:\n   {balance} {currency} debt\n   {insurance} {currency} insurance\n\n"
         silence_minutes = balance / money_per_min if balance / money_per_min != 0 else 0
@@ -138,7 +139,21 @@ class MuteForMoney(commands.Cog):
             statement = pre + f"They are riding the 0 line!"
         else:
             statement = pre + f"You can continue enjoying their sweet silence for {silence_minutes} minutes"
-        await ctx.send(statement)
+
+        title = "User Balances"
+        description = f"{member.name}"
+        minutes_title = "insured" if insurance > 0 else "silenced"
+        minutes_value = insurance if insurance > 0 else balance
+        foot = f'Called by {ctx.author}'
+        embed = discord.Embed(title=title, colour=ctx.author.colour, description=description)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_author(name=member.name, icon_url=member.avatar_url)
+        embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
+        embed.add_field(name="Debt:", value=f"{balance}", inline=True)
+        embed.add_field(name="Insurance:", value=f"{insurance}", inline=True)
+        embed.add_field(name="Donated:", value=f"{donated}", inline=True)
+        embed.add_field(name=f"Minutes left {minutes_title}", value=f"{minutes_value}", inline=True)
+        await ctx.send(embed=embed)
 
     @balance.command()
     @commands.guild_only()
