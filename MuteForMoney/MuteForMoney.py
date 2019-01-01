@@ -22,9 +22,9 @@ class MuteForMoney(commands.Cog):
         """Main Commands"""
         pass
 
+    @mfm.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    @mfm.command()
     async def start(self, ctx):
         """Start event"""
         if not self.task:
@@ -33,9 +33,9 @@ class MuteForMoney(commands.Cog):
         else:
             await ctx.send('Event already running')
 
+    @mfm.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    @mfm.command()
     async def stop(self, ctx):
         """Stop event"""
         if self.task:
@@ -45,9 +45,9 @@ class MuteForMoney(commands.Cog):
         else:
             await ctx.send("Event not currently running")
 
+    @mfm.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    @mfm.command()
     async def reset(self, ctx):
         """Reset all balances"""
         async with self.config.guild(ctx.guild).users() as users:
@@ -55,9 +55,16 @@ class MuteForMoney(commands.Cog):
                 stats["balance"] = 0
             await ctx.send("All balances reset to 0")
 
-    @commands.command()
+    @commands.group()
     @commands.guild_only()
-    async def balance(self, ctx, member: discord.Member):
+    @checks.admin_or_permissions(manage_roles=True)
+    async def balance(self, ctx: commands.Context):
+        """Balance manipulation"""
+        pass
+
+    @balance.command()
+    @commands.guild_only()
+    async def get(self, ctx, member: discord.Member):
         """Get balance for member"""
         async with self.config.guild(ctx.guild).users() as users:
             if users.get(member.id):
@@ -74,11 +81,48 @@ class MuteForMoney(commands.Cog):
             else:
                 await ctx.send(f"{member.name} has not participated in the event")
 
+    @balance.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def set(self, ctx, member: discord.Member, balance_amount: int):
+        """Set balance for member"""
+        async with self.config.guild(ctx.guild).users() as users:
+            if users.get(member.id):
+                users[member.id]["balance"] = balance_amount
+            else:
+                await ctx.send(f"{member.name} has not participated in the event")
+
+    @balance.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def clear(self, ctx, member: discord.Member):
+        """clear balance for member"""
+        async with self.config.guild(ctx.guild).users() as users:
+            if users.get(member.id):
+                users[member.id]["balance"] = 0
+            else:
+                await ctx.send(f"{member.name} has not participated in the event")
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def donation(self, ctx, donor: discord.Member, amount: int, recipient: discord.Member):
+        """Add donation from donator to donatee"""
+        async with self.config.guild(ctx.guild).users() as users:
+            for user in [donor, recipient]:
+                if not users.get(user):
+                    await self.create_user(ctx, user)
+
+            users[donor]["donated"] = users[donor]["donated"] + amount
+            users[recipient]["balance"] = users[recipient]["balance"] + amount
+
+        await ctx.send(f"Balance changed for {recipient} by {amount}")
+
     # Backend Functions
     async def create_user(self, ctx, member: discord.Member):
         user = {
-            "balance": 0
+            "balance": 0,
+            "donated": 0
         }
         async with self.config.guild(ctx.guild).users() as users:
             users[member.id] = user
-
