@@ -134,14 +134,14 @@ class MuteForMoney(commands.Cog):
     @balance.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def set(self, member: discord.Member, balance_amount: int):
+    async def set(self, ctx, member: discord.Member, balance_amount: int):
         """Set balance for member"""
         await self.config.member(member).balance.set(balance_amount)
 
     @balance.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def clear(self, member: discord.Member):
+    async def clear(self, ctx, member: discord.Member):
         """clear balance for member"""
         await self.config.member(member).balance.set(0)
 
@@ -156,7 +156,7 @@ class MuteForMoney(commands.Cog):
 
         balance = await self.config.member(recipient).balance()
         balance += amount
-        await self.config.member(donor).balance.set(balance)
+        await self.config.member(recipient).balance.set(balance)
 
         await ctx.send(f"Balance changed for {recipient} by {amount}")
 
