@@ -184,15 +184,15 @@ class MuteForMoney(commands.Cog):
         users = await self.config.all_members(ctx.guild)
         donors = [(data["donated"], ctx.guild.get_member(uid))
                   for uid, data in users.items() if data["donated"] > 0]
-        enumerated = enumerate(sorted(donors), 1)
+        enumerated = enumerate(sorted(donors, reverse=True), 1)
 
         title = "Event Totals"
-        description = '\n'.join([f"{x[0]}. {x[1][0]} = {x[1][1].name}" for x in enumerated])
+        description = '\n'.join([f"{x[0]}. {x[1][0]:,} = {x[1][1].name}" for x in enumerated])
         foot = f'Called by {ctx.author}'
         embed = discord.Embed(title=title, colour=ctx.author.colour, description=description)
         embed.set_thumbnail(url='http://storage.proboards.com/6838209/images/AVlayLeEV0VRpUXttdvu.png')
         embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
-        
+
         await ctx.send(embed=embed)
 
     @commands.command()
