@@ -83,7 +83,7 @@ class MuteForMoney(commands.Cog):
     @wipe.command()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def user(self, ctx, member: discord.Member):
+    async def member(self, ctx, member: discord.Member):
         """Reset user"""
         defaults = await self.config.member(member).defaults()
         test = await self.config.member(member).all()
