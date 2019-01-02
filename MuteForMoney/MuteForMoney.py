@@ -186,11 +186,7 @@ class MuteForMoney(commands.Cog):
     async def totals(self, ctx):
         """Get totals for event"""
         users = await self.config.all_members(ctx.guild)
-        participated = [user for user in users if users[user]["donated"] > 0]
-        for user in participated:
-            print(user)
-            for a in user:
-                print(a)
+        print(users)
 
 
     @commands.command()
