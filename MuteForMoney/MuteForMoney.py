@@ -134,6 +134,7 @@ class MuteForMoney(commands.Cog):
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
         minutes_left = insurance / money_per_min if insurance else balance / money_per_min
         formatted_left = await self.time_from_minutes(minutes_left)
+        formatted_sanity = formatted_left if formatted_left else "None! Get'em While they are vulnerable!"
 
         title = "User Balances"
         minutes_title = "Insured" if insurance > 0 else "Silenced"
@@ -145,7 +146,7 @@ class MuteForMoney(commands.Cog):
         embed.add_field(name="Debt:", value=f"{balance} {currency}", inline=True)
         embed.add_field(name="Insurance:", value=f"{insurance} {currency}", inline=True)
         embed.add_field(name="Donated:", value=f"{donated} {currency}", inline=True)
-        embed.add_field(name=f"Minutes Left {minutes_title}", value=f"{formatted_left}", inline=True)
+        embed.add_field(name=f"Minutes Left {minutes_title}", value=f"{formatted_sanity}", inline=True)
         await ctx.send(embed=embed)
 
     @balance.command()
