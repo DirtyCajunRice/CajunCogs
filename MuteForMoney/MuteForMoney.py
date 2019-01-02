@@ -134,7 +134,7 @@ class MuteForMoney(commands.Cog):
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
         minutes_left = insurance / money_per_min if insurance else balance / money_per_min
         formatted_left = await self.time_from_minutes(minutes_left)
-        
+
         title = "User Balances"
         minutes_title = "Insured" if insurance > 0 else "Silenced"
         foot = f'Called by {ctx.author}'
@@ -342,14 +342,15 @@ class MuteForMoney(commands.Cog):
                     except Exception as e:
                         print(e)
 
-    async def time_from_minutes(self, mins):
+    @staticmethod
+    async def time_from_minutes(mins):
         secs = timedelta(minutes=mins).seconds
         days = secs // 86400
         hours = (secs - days * 86400) // 3600
         minutes = (secs - days * 86400 - hours * 3600) // 60
         seconds = secs - days * 86400 - hours * 3600 - minutes * 60
-        result = (f"{days} day{'s' if days != 1 else ''}" if days else "") + \
-                 (f"{hours} hour{'s' if hours != 1 else ''}" if hours else "") + \
-                 (f"{minutes} minute{'s' if minutes != 1 else ''}" if minutes else "") + \
-                 (f"{seconds} second{'s' if seconds != 1 else ''}" if seconds else "")
+        result = (f"{days} Day{'s ' if days != 1 else ' '}" if days else "") + \
+                 (f"{hours} Hour{'s ' if hours != 1 else ' '}" if hours else "") + \
+                 (f"{minutes} Minute{'s ' if minutes != 1 else ' '}" if minutes else "") + \
+                 (f"{seconds} Second{'s' if seconds != 1 else ''}" if seconds else "")
         return result
