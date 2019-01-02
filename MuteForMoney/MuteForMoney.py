@@ -16,8 +16,7 @@ class MuteForMoney(commands.Cog):
         }
         default_member = {
             "insurance": 0,
-            "donated": 0,
-            "on_hold": False
+            "donated": 0
         }
         self.config.register_guild(**default_guild)
         self.config.register_member(**default_member)
@@ -86,9 +85,6 @@ class MuteForMoney(commands.Cog):
     async def member(self, ctx, member: discord.Member):
         """Reset user"""
         defaults = self.config.member(member).defaults
-        test = self.config.member(member).all()
-        print(defaults)
-        print(test)
         await self.config.member(member).set(defaults)
         await bank.set_balance(member, 0)
         await ctx.send(f"Set {member.name}'s balance to 0")
@@ -186,7 +182,14 @@ class MuteForMoney(commands.Cog):
     async def totals(self, ctx):
         """Get totals for event"""
         users = await self.config.all_members(ctx.guild)
-        print(users)
+        donors = []
+        for uid, data in users:
+            print(f'UID: {uid}')
+            print(f"data: {data}")
+            if data["donated"] > 0:
+                print((uid, data["donated"]))
+                donors.append((uid, data["donated"]))
+                
 
 
     @commands.command()
@@ -351,31 +354,25 @@ class MuteForMoney(commands.Cog):
             channel = ctx.message.guild.get_channel(channelid)
             money_per = int(await self.config.guild(ctx.guild).moneyPerMin() / 4)
             for member in channel.members:
-                on_hold = await self.config.member(member).on_hold()
                 balance = await bank.get_balance(member)
                 overwrites = channel.overwrites_for(member)
-                if not on_hold:
-                    if money_per >= balance > 0:
-                        balance = 0
-                    elif balance > money_per:
-                        balance -= money_per
-
-                    if overwrites.speak is not None and overwrites.speak is False and balance == 0:
-                        overwrites.speak = True
-                    elif (overwrites.speak is None or overwrites.speak is True) and balance > 0:
-                        overwrites.speak = False
-
-                    if member.voice.mute is not None and member.voice.mute is True and balance == 0:
-                        await member.edit(mute=False)
-                    elif (member.voice.mute is None or member.voice.mute is False) and balance > 0:
-                        await member.edit(mute=True)
-
-                    await bank.set_balance(member, balance)
-
-                    try:
-                        await channel.set_permissions(member, overwrite=overwrites)
-                    except Exception as e:
-                        print(e)
+                if money_per >= balance > 0:
+                    balance = 0
+                elif balance > money_per:
+                    balance -= money_per
+                if overwrites.speak is not None and overwrites.speak is False and balance == 0:
+                    overwrites.speak = True
+                elif (overwrites.speak is None or overwrites.speak is True) and balance > 0:
+                    overwrites.speak = False
+                if member.voice.mute is not None and member.voice.mute is True and balance == 0:
+                    await member.edit(mute=False)
+                elif (member.voice.mute is None or member.voice.mute is False) and balance > 0:
+                    await member.edit(mute=True)
+                await bank.set_balance(member, balance)
+                try:
+                    await channel.set_permissions(member, overwrite=overwrites)
+                except Exception as e:
+                    print(e)
 
     @staticmethod
     async def time_from_minutes(mins):
