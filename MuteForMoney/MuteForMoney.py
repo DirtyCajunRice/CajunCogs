@@ -85,8 +85,9 @@ class MuteForMoney(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     async def member(self, ctx, member: discord.Member):
         """Reset user"""
-        defaults = await self.config.member(member).defaults()
+        defaults = await self.config.member(member).defaults
         test = await self.config.member(member).all()
+        print(defaults)
         print(test)
         await self.config.member(member).set(defaults)
         await bank.set_balance(member, 0)
@@ -186,7 +187,10 @@ class MuteForMoney(commands.Cog):
         """Get totals for event"""
         users = await self.config.all_members(ctx.guild)
         participated = [user for user in users if users[user]["donated"] > 0]
-        print(participated)
+        for user in participated:
+            print(user)
+            for a in user:
+                print(a)
 
 
     @commands.command()
