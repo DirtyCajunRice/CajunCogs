@@ -185,12 +185,12 @@ class MuteForMoney(commands.Cog):
         donors = []
         print(users)
         print(type(users))
-        #for uid, data in users:
-        #    print(f'UID: {uid}')
-        #    print(f"data: {data}")
-        #    if data["donated"] > 0:
-        #        print((uid, data["donated"]))
-        #        donors.append((uid, data["donated"]))
+        for uid, data in users.items():
+            print(f'UID: {uid}')
+            print(f"data: {data}")
+            if data["donated"] > 0:
+                print((uid, data["donated"]))
+                donors.append((uid, data["donated"]))
                 
 
 
