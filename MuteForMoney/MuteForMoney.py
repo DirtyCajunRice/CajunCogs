@@ -183,12 +183,14 @@ class MuteForMoney(commands.Cog):
         """Get totals for event"""
         users = await self.config.all_members(ctx.guild)
         donors = []
-        for uid, data in users:
-            print(f'UID: {uid}')
-            print(f"data: {data}")
-            if data["donated"] > 0:
-                print((uid, data["donated"]))
-                donors.append((uid, data["donated"]))
+        print(users)
+        print(type(users))
+        #for uid, data in users:
+        #    print(f'UID: {uid}')
+        #    print(f"data: {data}")
+        #    if data["donated"] > 0:
+        #        print((uid, data["donated"]))
+        #        donors.append((uid, data["donated"]))
                 
 
 
