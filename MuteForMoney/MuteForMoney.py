@@ -140,6 +140,7 @@ class MuteForMoney(commands.Cog):
         foot = f'Called by {ctx.author}'
         embed = discord.Embed(title=title, colour=ctx.author.colour)
         embed.set_author(name=member.name, icon_url=member.avatar_url)
+        embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
         embed.add_field(name="Debt:", value=f"{balance} {currency}", inline=True)
         embed.add_field(name="Insurance:", value=f"{insurance} {currency}", inline=True)
