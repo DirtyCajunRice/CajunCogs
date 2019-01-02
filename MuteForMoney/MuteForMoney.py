@@ -48,18 +48,49 @@ class MuteForMoney(commands.Cog):
         if self.tasks.get(ctx.guild.id):
             self.tasks[ctx.guild.id].cancel()
             del self.tasks[ctx.guild.id]
+
+            channelid = await self.config.guild(ctx.guild).eventChannel()
+            channel = ctx.message.guild.get_channel(channelid)
+
+            for member in channel.members:
+                overwrites = channel.overwrites_for(member)
+                if overwrites.speak is not None:
+                    overwrites.speak = None
+
+                if member.voice.mute is not None:
+                    await member.edit(mute=False)
+
             await ctx.send("Event Ended!")
         else:
             await ctx.send("Event not currently running")
 
-    @mfm.command()
+    @commands.group()
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
-    async def reset(self, ctx):
-        """Reset, deleting all users"""
+    async def wipe(self, ctx: commands.Context):
+        """Main Commands"""
+        pass
+
+    @wipe.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def server(self, ctx):
+        """Reset all users"""
         await self.config.clear_all_members(ctx.guild)
         await bank.wipe_bank(ctx.guild)
         await ctx.send("All users/bank deleted")
+
+    @wipe.command()
+    @commands.guild_only()
+    @checks.admin_or_permissions(manage_roles=True)
+    async def user(self, ctx, member: discord.Member):
+        """Reset user"""
+        defaults = await self.config.member(member).defaults()
+        test = await self.config.member(member).all()
+        print(test)
+        await self.config.member(member).set(defaults)
+        await bank.set_balance(member, 0)
+        await ctx.send(f"Set {member.name}'s balance to 0")
 
     @commands.group()
     @commands.guild_only()
@@ -125,7 +156,7 @@ class MuteForMoney(commands.Cog):
 
     @balance.command()
     @commands.guild_only()
-    async def get(self, ctx, member: discord.Member):
+    async def user(self, ctx, member: discord.Member):
         """Get balance for member"""
         currency = await bank.get_currency_name(ctx.guild)
         balance = await bank.get_balance(member)
@@ -151,11 +182,12 @@ class MuteForMoney(commands.Cog):
 
     @balance.command()
     @commands.guild_only()
-    @checks.admin_or_permissions(manage_roles=True)
-    async def clear(self, ctx, member: discord.Member):
-        """clear balance for member"""
-        await bank.set_balance(member, 0)
-        await ctx.send(f"Set {member.name}'s balance to 0")
+    async def totals(self, ctx):
+        """Get totals for event"""
+        users = await self.config.all_members(ctx.guild)
+        participated = [user for user in users if users[user]["donated"] > 0]
+        print(participated)
+
 
     @commands.command()
     @commands.guild_only()
@@ -311,6 +343,7 @@ class MuteForMoney(commands.Cog):
         await ctx.send(f"Balance changed for all recipients by {divided_amount}")
 
     # Backend Functions
+    @checks.bot_has_permissions()
     async def live_event(self, ctx):
         while True:
             await asyncio.sleep(15)
