@@ -75,7 +75,7 @@ class MuteForMoney(commands.Cog):
         """Set currency suffix"""
         default_balance = await bank.get_default_balance(ctx.guild)
         is_global = await bank.is_global()
-        if default_balance < 0:
+        if default_balance > 0:
             await bank.set_default_balance(0, ctx.guild)
         if is_global:
             await bank.set_global(False)
@@ -134,7 +134,7 @@ class MuteForMoney(commands.Cog):
         money_per_min = await self.config.guild(ctx.guild).moneyPerMin()
         minutes_left = insurance / money_per_min if insurance else balance / money_per_min
         formatted_left = await self.time_from_minutes(minutes_left)
-        formatted_sanity = formatted_left if formatted_left else "None! Get'em While they are vulnerable!"
+        formatted_sanity = formatted_left if formatted_left else "None! Get'em while they are vulnerable!"
 
         title = "User Balances"
         minutes_title = "Insured" if insurance > 0 else "Silenced"
