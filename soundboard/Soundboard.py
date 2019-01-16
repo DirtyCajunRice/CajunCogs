@@ -168,14 +168,17 @@ class Soundboard(commands.Cog):
         if not query:
             return await self._embed_msg(ctx, _("Please name a soundclip! E.g. !sb zebra"))
 
-        uri = f"/opt/localtracks/sc/{query}.mp3"
-
-        allowed_files = (".mp3", ".flac", ".ogg")
-
-        tracks = await player.get_tracks(uri)
-        if not tracks:
+        path = "/opt/localtracks/sc/"
+        files = [os.path.join(dp, f) for dp, dn, fn in os.walk(path) for f in fn]
+        file = [a for a in files if query == os.path.basename(a).replace('.mp3', '')]
+        try:
+            to_play = file[0]
+        except IndexError:
             return await self._embed_msg(ctx, _(f"{query} does not exist :("))
 
+        tracks = await player.get_tracks(file)
+        if not tracks:
+            return await self._embed_msg(ctx, _(f"{query} does not exist :("))
 
         single_track = tracks[0]
         player.add(ctx.author, single_track)
@@ -193,7 +196,7 @@ class Soundboard(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["sclist"])
+    @commands.command(aliases=["sclist", "sblist"])
     @commands.guild_only()
     async def soundclip_list(self, ctx):
         """play a soundclip"""
