@@ -176,7 +176,7 @@ class Soundboard(commands.Cog):
         except IndexError:
             return await self._embed_msg(ctx, _(f"{query} does not exist :("))
 
-        tracks = await player.get_tracks(file)
+        tracks = await player.get_tracks(to_play)
         if not tracks:
             return await self._embed_msg(ctx, _(f"{query} does not exist :("))
 
