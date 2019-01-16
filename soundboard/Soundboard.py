@@ -126,7 +126,6 @@ class Soundboard(commands.Cog):
         embed = discord.Embed(colour=await ctx.embed_colour(), description=box(msg, lang="ini"))
         return await ctx.send(embed=embed)
 
-
     @commands.command(aliases=["sbdc"])
     @commands.guild_only()
     async def sbdisconnect(self, ctx):
@@ -196,7 +195,7 @@ class Soundboard(commands.Cog):
 
     @commands.command(aliases=["sclist"])
     @commands.guild_only()
-    async def soundclip_list(self, ctx, *, query):
+    async def soundclip_list(self, ctx):
         """play a soundclip"""
 
         path = f"/opt/localtracks/sc/"
