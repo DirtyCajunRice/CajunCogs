@@ -209,9 +209,8 @@ class Soundboard(commands.Cog):
                 user_dict.update({user: []})
             user_dict[user].append(mp3.replace('.mp3', ''))
 
-        description = '\n'.join(files)
         embed = discord.Embed(
-            colour=await ctx.embed_colour(), title=_("Soundclip List:"), description=description
+            colour=await ctx.embed_colour(), title=_("Soundclip List:")
         )
         embed.set_footer(
             text=_(f"Called by: {ctx.author}")
@@ -219,7 +218,7 @@ class Soundboard(commands.Cog):
         for user, file_names in user_dict.items():
             file_names.sort()
             value = '\n'.join(file_names)
-            embed.add_field(name=user, value=value)
+            embed.add_field(name=user, value=value, inline=False)
 
         await ctx.send(embed=embed)
 
