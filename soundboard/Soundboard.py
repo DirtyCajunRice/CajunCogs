@@ -6,7 +6,7 @@ import discord
 import lavalink
 
 import time
-from os import listdir
+import os
 import redbot.core
 from redbot.core import Config, commands, checks
 from redbot.core.i18n import Translator, cog_i18n
@@ -190,7 +190,7 @@ class Soundboard(commands.Cog):
         )
         if not player.current:
             await player.play()
-        
+
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["sclist"])
@@ -198,9 +198,16 @@ class Soundboard(commands.Cog):
     async def soundclip_list(self, ctx):
         """play a soundclip"""
 
-        path = f"/opt/localtracks/sc/"
-        files = [file.replace('.mp3', '') for file in listdir(path)]
-        files.sort()
+        path = "/opt/localtracks/sc/"
+        files = [os.path.join(dp, f) for dp, dn, fn in os.walk(path) for f in fn]
+        short_files = [full_path.replace(path, '') for full_path in files]
+        user_dict = {}
+        for file in short_files:
+            user = file.split('/')[0]
+            mp3 = file.split('/')[1]
+            if not user_dict.get(user):
+                user_dict.update({user: []})
+            user_dict[user].append(mp3.replace('.mp3', ''))
 
         description = '\n'.join(files)
         embed = discord.Embed(
@@ -209,6 +216,10 @@ class Soundboard(commands.Cog):
         embed.set_footer(
             text=_(f"Called by: {ctx.author}")
         )
+        for user, file_names in user_dict.items():
+            file_names.sort()
+            value = '\n'.join(file_names)
+            embed.add_field(name=user, value=value)
 
         await ctx.send(embed=embed)
 
