@@ -6,6 +6,7 @@ import discord
 import lavalink
 
 import time
+from os import listdir
 import redbot.core
 from redbot.core import Config, commands, checks
 from redbot.core.i18n import Translator, cog_i18n
@@ -169,7 +170,7 @@ class Soundboard(commands.Cog):
             return await self._embed_msg(ctx, _("Please name a soundclip! E.g. !sb zebra"))
 
         uri = f"/opt/localtracks/sc/{query}.mp3"
-        
+
         allowed_files = (".mp3", ".flac", ".ogg")
 
         tracks = await player.get_tracks(uri)
@@ -191,6 +192,25 @@ class Soundboard(commands.Cog):
         if not player.current:
             await player.play()
         
+        await ctx.send(embed=embed)
+
+    @commands.command(aliases=["sclist"])
+    @commands.guild_only()
+    async def soundclip_list(self, ctx, *, query):
+        """play a soundclip"""
+
+        path = f"/opt/localtracks/sc/"
+        files = [file.strip('.mp3') for file in listdir(path)]
+        files.sort()
+
+        description = '\n'.join(files)
+        embed = discord.Embed(
+            colour=await ctx.embed_colour(), title=_("Soundclip List:"), description=description
+        )
+        embed.set_footer(
+            text=_(f"Called by: {ctx.author}")
+        )
+
         await ctx.send(embed=embed)
 
     @commands.command()
