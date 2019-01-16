@@ -199,7 +199,7 @@ class Soundboard(commands.Cog):
         """play a soundclip"""
 
         path = f"/opt/localtracks/sc/"
-        files = [file.strip('.mp3') for file in listdir(path)]
+        files = [file.replace('.mp3', '') for file in listdir(path)]
         files.sort()
 
         description = '\n'.join(files)
