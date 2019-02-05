@@ -84,8 +84,13 @@ class Wiki(commands.Cog):
                         if members:
                             content = ' '.join([member.mention for member in members])
                         query_words = [word for word in query.split(" ") if '@' not in word]
-                        responses = [q[0] for word in query_words for q in process.extract(word, d['links'])
-                                     if q[1] >= 60]
+                        responses = list(
+                            set(
+                                [q[0] for word in query_words for q in process.extract(
+                                    word, d['links']
+                                ) if q[1] >= 60]
+                            )
+                        )
                         if query_words and not responses:
                             await ctx.send(f'No links found with "{query}"')
                         elif responses:
@@ -122,13 +127,13 @@ class Wiki(commands.Cog):
                 g = await self.get(f'{wiki_pages[link.text]["url"]}.md')
                 page = BeautifulSoup(markdown(g), "html.parser")
                 plinks = page.find_all('a', href=True)
-                wiki_pages[link.text]['links'] = list(set([
+                wiki_pages[link.text]['links'] = [
                     (
                         plink.text,
                         f'{wiki_pages[link.text]["url"] if plink["href"].startswith("#") else ""}{plink["href"]}'
                     )
                     for plink in plinks
-                ]))
+                ]
 
     @staticmethod
     async def get(url):
