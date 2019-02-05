@@ -94,6 +94,7 @@ class Wiki(commands.Cog):
                         if query_words and not responses:
                             await ctx.send(f'No links found with "{query}"')
                         elif responses:
+                            foot = f'Called by "{ctx.author}" | Query: "{" ".join(query_words)}"'
                             description = '\n'.join([f"{q[0]}. [{q[1][0]}]({q[1][1]})"
                                                      for q in enumerate(responses, 1)])
 
