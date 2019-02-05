@@ -1,0 +1,18 @@
+{
+    "author": [
+        "Roxedus"
+    ],
+    "bot_version": [
+        3,
+        0,
+        0
+    ],
+    "description": "Issues common responses, beautifully.",
+    "hidden": false,
+    "install_msg": "Thanks for beta-testing this",
+    "short": "Issues common responses, beautifully.",
+    "tags": [
+        "response",
+        "roxedus"
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "author": [
+        "Roxedus"
+    ],
+    "bot_version": [
+        3,
+        0,
+        0
+    ],
+    "description": "Deletes attachments that are not images.",
+    "hidden": false,
+    "install_msg": "Thanks for beta-testing this",
+    "short": "Deletes attachments that are not images.",
+    "tags": [
+        "image",
+        "roxedus"
+    ]
+}
