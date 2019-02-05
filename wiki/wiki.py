@@ -122,13 +122,13 @@ class Wiki(commands.Cog):
                 g = await self.get(f'{wiki_pages[link.text]["url"]}.md')
                 page = BeautifulSoup(markdown(g), "html.parser")
                 plinks = page.find_all('a', href=True)
-                wiki_pages[link.text]['links'] = [
+                wiki_pages[link.text]['links'] = list(set([
                     (
                         plink.text,
                         f'{wiki_pages[link.text]["url"] if plink["href"].startswith("#") else ""}{plink["href"]}'
                     )
                     for plink in plinks
-                ]
+                ]))
 
     @staticmethod
     async def get(url):
