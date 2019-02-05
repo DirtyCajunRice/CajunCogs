@@ -76,7 +76,7 @@ class Wiki(commands.Cog):
                 if page in k.lower():
                     title = f"Have you read the {k} wiki page?"
                     url = d['url']
-                    foot = f'Called by "{ctx.author}"'
+                    foot = f'Called by "{ctx.author} | Page Query: "{page}"'
                     if query:
                         member_strings = [word for word in query.split(" ") if '@' in word]
                         member_ids = [int(''.join([n for n in member if n.isdigit()])) for member in member_strings]
