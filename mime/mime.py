@@ -27,6 +27,7 @@ class MIME(commands.Cog):
 
     @staticmethod
     async def bin_link_sniffer(message):
+        print('asdf')
         bin_link = "https://bin.cajun.pro/"
         raw = f"{bin_link}raw/"
         image = f"{bin_link}images/"
