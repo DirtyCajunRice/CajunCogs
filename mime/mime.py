@@ -32,7 +32,6 @@ class MIME(commands.Cog):
         raw = f"{bin_link}raw/"
         image = f"{bin_link}images/"
         content = message.content
-        print(message.content)
         if bin_link in content and not any([raw in content or image in content]):
             fixed_links = []
             links = [link for link in content.split() if bin_link in link]
