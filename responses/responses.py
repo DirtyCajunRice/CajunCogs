@@ -15,7 +15,7 @@ class Responses(commands.Cog):
         title = "How to Find Your Logs"
         description = "Logs can be found in your data folder or via the console. The default log location is" \
                       " typically `/opt/Varken/data/logs/varken.log`. Paste the logs on " \
-                      "[Log Bin](https://bin.cajun.pro) and post the link here, " \
+                      "[Log Bin](https://bin.cajun.pro) and post the RAW link here, " \
                       "**do not upload** the file as an attachment."
         foot = f"Called by {ctx.author}"
         embed = discord.Embed(title=title, colour=ctx.author.colour, description=description)
