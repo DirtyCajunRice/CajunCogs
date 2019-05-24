@@ -5,14 +5,14 @@
     "bot_version": [
         1,
         0,
-        0
+        1
     ],
-    "description": "Deletes attachments that are not images.",
+    "description": "Automatically modifies message content",
     "hidden": false,
     "install_msg": "Thanks for beta-testing this",
-    "short": "Deletes attachments that are not images.",
+    "short": "Automatically modifies message content",
     "tags": [
         "image",
-        "roxedus"
+        "DirtyCajunRice"
     ]
 }

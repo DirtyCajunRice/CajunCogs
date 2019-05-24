@@ -3,7 +3,7 @@ import discord
 import re
 
 
-class MIME(commands.Cog):
+class AutoModify(commands.Cog):
     """Deletes messages with attachments that are not images."""
 
     @staticmethod
