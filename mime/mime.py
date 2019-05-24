@@ -38,6 +38,8 @@ class MIME(commands.Cog):
             for link in links:
                 if link.count('.') > 2:
                     fixed_links.append('.'.join(link.split('.')[:-1]).replace('.pro/', '.pro/raw/'))
+                else:
+                    fixed_links.append(link.replace('.pro/', '.pro/raw/'))
             msg_content = f"Here is the RAW for {message.author.mention}'s paste"
             description = '\n'.join(link for link in fixed_links)
             foot = f"Automatically updated by your friendly neighborhood bot"
