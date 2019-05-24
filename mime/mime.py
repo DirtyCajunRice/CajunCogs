@@ -34,7 +34,8 @@ class MIME(commands.Cog):
         content = message.content
         if bin_link in content and not any([raw in content or image in content]):
             fixed_links = []
-            links = [link for link in content.split() if bin_link in link]
+            links = [link for link in content.split() if bin_link in link and not
+                     any([link == bin_link or link == bin_link.rstrip('/')])]
             for link in links:
                 if link.count('.') > 2:
                     fixed_links.append('.'.join(link.split('.')[:-1]).replace('.pro/', '.pro/raw/'))
