@@ -120,7 +120,7 @@ class Wiki(commands.Cog):
                 for chapter, data in wiki_pages.items():
                     for p, d in data['pages'].items():
                         if page in p.lower():
-                            title = f"Have you read the {p} wiki page in the {chapter} chapter?"
+                            title = f"__**Have you read the {p} wiki page in the {chapter} chapter?**__"
                             url = d['url']
                             foot = f'Called by "{ctx.author} | Page Query: "{page}"'
                             if query:
