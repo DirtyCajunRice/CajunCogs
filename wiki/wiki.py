@@ -119,6 +119,8 @@ class Wiki(commands.Cog):
             if wiki_type == "bookstack":
                 for chapter, data in wiki_pages.items():
                     for p, d in data['pages'].items():
+                        print(p.lower())
+                        print(page)
                         if page in p.lower():
                             title = f"Have you read the {p} wiki page in the {chapter} chapter?"
                             url = d['url']
