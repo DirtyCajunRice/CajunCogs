@@ -191,6 +191,7 @@ class Wiki(commands.Cog):
             g = await self.get(wiki_base_url)
             page = BeautifulSoup(g, "html.parser")
             chapters = page.find("div", class_="book-content").find_all("a", class_="chapter")
+            await self.config.guild(ctx.guild).wiki_pages().set({})
             async with self.config.guild(ctx.guild).wiki_pages() as wiki_pages:
                 for chapter in chapters:
                     chapter_title = chapter.find('h4').text
