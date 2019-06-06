@@ -119,8 +119,6 @@ class Wiki(commands.Cog):
             if wiki_type == "bookstack":
                 for chapter, data in wiki_pages.items():
                     for p, d in data['pages'].items():
-                        print(p.lower())
-                        print(page)
                         if page in p.lower():
                             title = f"Have you read the {p} wiki page in the {chapter} chapter?"
                             url = d['url']
@@ -175,6 +173,7 @@ class Wiki(commands.Cog):
             g = await self.get(wiki_base_url + '/Home' + '.md')
             page = BeautifulSoup(markdown(g), "html.parser")
             links = page.find_all('a', href=True)
+            await self.config.guild(ctx.guild).wiki_pages().set({})
             async with self.config.guild(ctx.guild).wiki_pages() as wiki_pages:
                 for link in links:
                     wiki_pages[link.text] = {'url': f"{wiki_base_url}/{link['href']}"}
