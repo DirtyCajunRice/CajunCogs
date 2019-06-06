@@ -143,7 +143,7 @@ class Wiki(commands.Cog):
                                 elif responses:
                                     qw = " ".join(query_words)
                                     foot = foot + f' | Search Query: "{qw}"'
-                                    description = '\n'.join([f"{q[0]}. [{q[1][0]}]({q[1][1]})"
+                                    description = '\n'.join([f"{q[0]}. [{q[1][0]}]({d['url']}{q[1][1]})"
                                                              for q in enumerate(responses, 1)])
                                     print(description)
                                     print(responses)
