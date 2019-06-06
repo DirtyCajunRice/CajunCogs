@@ -57,9 +57,9 @@ class Wiki(commands.Cog):
                 return
             description = '\n'.join([f"[{k}]({d['url']})" for k, d in wiki_pages.items()])
             if wiki_type == "github":
-                title = f"{wiki_base_url.split('com/')[1].split('/wiki')[0]} wiki pages"
+                title = f"__**{wiki_base_url.split('com/')[1].split('/wiki')[0]} Wiki Pages**__"
             elif wiki_type == "bookstack":
-                title = f"{wiki_base_url.rstrip('/').split('/')[-1:][0].capitalize()} wiki chapters"
+                title = f"__**{wiki_base_url.rstrip('/').split('/')[-1:][0].capitalize()} Wiki Chapters**__"
 
         foot = f'Called by "{ctx.author}"'
         embed = discord.Embed(title=title, url=wiki_base_url, colour=ctx.author.colour, description=description)
@@ -146,10 +146,11 @@ class Wiki(commands.Cog):
                                     description = '\n'.join([f"{q[0]}. [{q[1][0]}]({q[1][1]})"
                                                              for q in enumerate(responses, 1)])
 
-                        embed = discord.Embed(title=title, colour=ctx.author.colour, description=description, url=url)
-                        embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
-                        await ctx.send(embed=embed, content=content)
-                        return
+                            embed = discord.Embed(title=title, colour=ctx.author.colour, description=description,
+                                                  url=url)
+                            embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
+                            await ctx.send(embed=embed, content=content)
+                            return
 
                 if not title:
                     await ctx.send(f'No wiki page matches "{page}"')
