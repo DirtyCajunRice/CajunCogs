@@ -45,10 +45,10 @@ class Wiki(commands.Cog):
         else:
             await ctx.send(f"{wiki_type} is not a valid wiki type. (Bookstack, Github)")
 
-    @commands.command()
+    @commands.command(aliases=["chapters", "wcs"])
     @checks.admin_or_permissions(manage_roles=True)
     @commands.guild_only()
-    async def wikipages(self, ctx):
+    async def wikichapters(self, ctx):
         wiki_base_url = await self.config.guild(ctx.guild).wiki_base_url()
         wiki_type = await self.config.guild(ctx.guild).wiki_type()
 
@@ -66,7 +66,7 @@ class Wiki(commands.Cog):
         embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["w"])
     @checks.admin_or_permissions(manage_roles=True)
     @commands.guild_only()
     async def wiki(self, ctx, page, *, query=None):
