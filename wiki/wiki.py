@@ -45,6 +45,33 @@ class Wiki(commands.Cog):
         else:
             await ctx.send(f"{wiki_type} is not a valid wiki type. (Bookstack, Github)")
 
+    @commands.command(aliases=["chapter", "wc"])
+    @checks.admin_or_permissions(manage_roles=True)
+    @commands.guild_only()
+    async def wikichapter(self, ctx, *, chapter=None):
+        wiki_base_url = await self.config.guild(ctx.guild).wiki_base_url()
+        wiki_type = await self.config.guild(ctx.guild).wiki_type()
+
+        if wiki_type == "github":
+            await ctx.send(f'Only implemented for Bookstack')
+            return
+        
+        if not chapter:
+            
+        async with self.config.guild(ctx.guild).wiki_pages() as wiki_pages:
+            if not await self.configuration_check(ctx, wiki_base_url, wiki_type, wiki_pages):
+                return
+            title = None
+            content = None
+            description = None
+            for c in wiki_pages.items():
+                
+
+        foot = f'Called by "{ctx.author}"'
+        embed = discord.Embed(title=title, url=wiki_base_url, colour=ctx.author.colour, description=description)
+        embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
+        await ctx.send(embed=embed)
+
     @commands.command(aliases=["chapters", "wcs"])
     @checks.admin_or_permissions(manage_roles=True)
     @commands.guild_only()
