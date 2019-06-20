@@ -114,6 +114,8 @@ class Wiki(commands.Cog):
                             if members:
                                 content = ' '.join([member.mention for member in members])
                             query_words = [word for word in query.split(" ") if '@' not in word]
+                            if not query_words:
+                                break
                             for p, d in data['pages'].items():
                                 if query_words[0].lower() in p.lower():
                                     title = f"__**Have you read the {p} wiki page in the {chapter} chapter?**__"
