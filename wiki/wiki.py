@@ -104,7 +104,7 @@ class Wiki(commands.Cog):
                     if page.lower() in chapter.lower():
                         title = f"__**Have you read the {chapter} chapter in the wiki?**__"
                         url = data['url']
-                        foot = f'Called by "{ctx.author} | Chapter Query: "{chapter}"'
+                        foot = f'Called by "{ctx.author} | Chapter Query: "{"faq" if page == "Questions" else page}"'
                         embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
                         if query:
                             member_strings = [word for word in query.split(" ") if '@' in word]
@@ -118,7 +118,7 @@ class Wiki(commands.Cog):
                                 if query_words[0].lower() in p.lower():
                                     title = f"__**Have you read the {p} wiki page in the {chapter} chapter?**__"
                                     url = d['url']
-                                    foot = f'{foot} | Page Query: {page}'
+                                    foot = f'{foot} | Page Query: {query_words[0]}'
                                     if len(query_words) == 1:
                                         embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
                                         break
