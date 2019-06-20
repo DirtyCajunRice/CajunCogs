@@ -45,54 +45,6 @@ class Wiki(commands.Cog):
         else:
             await ctx.send(f"{wiki_type} is not a valid wiki type. (Bookstack, Github)")
 
-    @commands.command(aliases=["chapter", "wc"])
-    @checks.admin_or_permissions(manage_roles=True)
-    @commands.guild_only()
-    async def wikichapter(self, ctx, *, chapter=None):
-        wiki_base_url = await self.config.guild(ctx.guild).wiki_base_url()
-        wiki_type = await self.config.guild(ctx.guild).wiki_type()
-
-        if wiki_type == "github":
-            await ctx.send(f'Only implemented for Bookstack')
-            return
-        
-        if not chapter:
-            
-        async with self.config.guild(ctx.guild).wiki_pages() as wiki_pages:
-            if not await self.configuration_check(ctx, wiki_base_url, wiki_type, wiki_pages):
-                return
-            title = None
-            content = None
-            description = None
-            for c in wiki_pages.items():
-                
-
-        foot = f'Called by "{ctx.author}"'
-        embed = discord.Embed(title=title, url=wiki_base_url, colour=ctx.author.colour, description=description)
-        embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
-        await ctx.send(embed=embed)
-
-    @commands.command(aliases=["chapters", "wcs"])
-    @checks.admin_or_permissions(manage_roles=True)
-    @commands.guild_only()
-    async def wikichapters(self, ctx):
-        wiki_base_url = await self.config.guild(ctx.guild).wiki_base_url()
-        wiki_type = await self.config.guild(ctx.guild).wiki_type()
-
-        async with self.config.guild(ctx.guild).wiki_pages() as wiki_pages:
-            if not await self.configuration_check(ctx, wiki_base_url, wiki_type, wiki_pages):
-                return
-            description = '\n'.join([f"[{k}]({d['url']})" for k, d in wiki_pages.items()])
-            if wiki_type == "github":
-                title = f"__**{wiki_base_url.split('com/')[1].split('/wiki')[0]} Wiki Pages**__"
-            elif wiki_type == "bookstack":
-                title = f"__**{wiki_base_url.rstrip('/').split('/')[-1:][0].capitalize()} Wiki Chapters**__"
-
-        foot = f'Called by "{ctx.author}"'
-        embed = discord.Embed(title=title, url=wiki_base_url, colour=ctx.author.colour, description=description)
-        embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
-        await ctx.send(embed=embed)
-
     @commands.command(aliases=["w"])
     @checks.admin_or_permissions(manage_roles=True)
     @commands.guild_only()
@@ -144,44 +96,54 @@ class Wiki(commands.Cog):
                     return
 
             if wiki_type == "bookstack":
+                embed = None
                 for chapter, data in wiki_pages.items():
-                    for p, d in data['pages'].items():
-                        if page in p.lower():
-                            title = f"__**Have you read the {p} wiki page in the {chapter} chapter?**__"
-                            url = d['url']
-                            foot = f'Called by "{ctx.author} | Page Query: "{page}"'
-                            if query:
-                                member_strings = [word for word in query.split(" ") if '@' in word]
-                                member_ids = [int(''.join([n for n in member if n.isdigit()])) for member in
-                                              member_strings]
-                                members = [ctx.bot.get_user(member) for member in member_ids]
-                                if members:
-                                    content = ' '.join([member.mention for member in members])
-                                query_words = [word for word in query.split(" ") if '@' not in word]
-                                responses = list(
-                                    set(
-                                        [q[0] for word in query_words for q in process.extract(
-                                            word, list(d['bookmarks'].items())
-                                        ) if q[1] >= 60]
-                                    )
-                                )
-                                if query_words and not responses:
-                                    await ctx.send(f'No matches for "{query}"')
-                                elif responses:
-                                    qw = " ".join(query_words)
-                                    foot = foot + f' | Search Query: "{qw}"'
-                                    description = '\n'.join([f"{q[0]}. [{q[1][0]}]({d['url']}#{q[1][1]})"
-                                                             for q in enumerate(responses, 1)])
-
-                            embed = discord.Embed(title=title, colour=ctx.author.colour, description=description,
-                                                  url=url)
-                            embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
-                            await ctx.send(embed=embed, content=content)
-                            return
-
-                if not title:
-                    await ctx.send(f'No wiki page matches "{page}"')
-                    return
+                    if 'faq' in page.lower():
+                        page = 'Questions'
+                    if page.lower() in chapter.lower():
+                        title = f"__**Have you read the {chapter} chapter in the wiki?**__"
+                        url = data['url']
+                        foot = f'Called by "{ctx.author} | Chapter Query: "{chapter}"'
+                        embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
+                        if query:
+                            member_strings = [word for word in query.split(" ") if '@' in word]
+                            member_ids = [int(''.join([n for n in member if n.isdigit()])) for member in
+                                          member_strings]
+                            members = [ctx.bot.get_user(member) for member in member_ids]
+                            if members:
+                                content = ' '.join([member.mention for member in members])
+                            query_words = [word for word in query.split(" ") if '@' not in word]
+                            for p, d in data['pages'].items():
+                                if query_words[0].lower() in p.lower():
+                                    title = f"__**Have you read the {p} wiki page in the {chapter} chapter?**__"
+                                    url = d['url']
+                                    foot = f'{foot} | Page Query: {page}'
+                                    if len(query_words) == 1:
+                                        embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
+                                        break
+                                    else:
+                                        responses = list(
+                                            set(
+                                                [q[0] for word in query_words[1:] for q in process.extract(
+                                                    word, list(d['bookmarks'].items())
+                                                ) if q[1] >= 60]
+                                            )
+                                        )
+                                        if not responses:
+                                            await ctx.send(f'No matches for bookmark query "{query[1:]}"')
+                                            break
+                                        else:
+                                            qw = " ".join(query_words[1:])
+                                            foot = f'{foot} | Bookmark Query: "{qw}"'
+                                            description = '\n'.join([f"{q[0]}. [{q[1][0]}]({d['url']}#{q[1][1]})"
+                                                                    for q in enumerate(responses, 1)])
+                                            embed = discord.Embed(title=title, colour=ctx.author.colour,
+                                                                  description=description, url=url)
+                if embed:
+                    embed.set_footer(text=foot, icon_url=ctx.author.avatar_url)
+                    await ctx.send(embed=embed, content=content)
+                else:
+                    await ctx.send(f'No wiki chapters match "{page}"')
 
     @commands.command()
     @checks.admin_or_permissions(manage_roles=True)
