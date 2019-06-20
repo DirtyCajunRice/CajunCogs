@@ -49,6 +49,7 @@ class Wiki(commands.Cog):
     @checks.admin_or_permissions(manage_roles=True)
     @commands.guild_only()
     async def wiki(self, ctx, page, *, query=None):
+        """Query the wiki. Commands build off of each other. !wiki <chapter> [<page> <bookmark> <@username>]"""
         wiki_base_url = await self.config.guild(ctx.guild).wiki_base_url()
         wiki_type = await self.config.guild(ctx.guild).wiki_type()
 
