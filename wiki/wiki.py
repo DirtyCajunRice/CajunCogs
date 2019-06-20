@@ -104,7 +104,7 @@ class Wiki(commands.Cog):
                     if page.lower() in chapter.lower():
                         title = f"__**Have you read the {chapter} chapter in the wiki?**__"
                         url = data['url']
-                        foot = f'Called by "{ctx.author} | Chapter Query: "{"faq" if page == "Questions" else page}"'
+                        foot = f'Called by "{ctx.author} | Queries -Chapter: "{"faq" if "Quest" in page else page}"'
                         embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
                         if query:
                             member_strings = [word for word in query.split(" ") if '@' in word]
@@ -118,7 +118,7 @@ class Wiki(commands.Cog):
                                 if query_words[0].lower() in p.lower():
                                     title = f"__**Have you read the {p} wiki page in the {chapter} chapter?**__"
                                     url = d['url']
-                                    foot = f'{foot} | Page Query: {query_words[0]}'
+                                    foot = f'{foot} -Page: "{query_words[0]}"'
                                     if len(query_words) == 1:
                                         embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
                                         break
@@ -135,7 +135,7 @@ class Wiki(commands.Cog):
                                             break
                                         else:
                                             qw = " ".join(query_words[1:])
-                                            foot = f'{foot} | Bookmark Query: "{qw}"'
+                                            foot = f'{foot} -Bookmark: "{qw}"'
                                             description = '\n'.join([f"{q[0]}. [{q[1][0]}]({d['url']}#{q[1][1]})"
                                                                     for q in enumerate(responses, 1)])
                                             embed = discord.Embed(title=title, colour=ctx.author.colour,
