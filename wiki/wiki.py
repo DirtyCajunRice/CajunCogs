@@ -125,14 +125,6 @@ class Wiki(commands.Cog):
                                     if len(query_words) == 1:
                                         break
                                     else:
-                                        print(list(
-                                            set(
-                                                [q[0] for word in query_words[1:] for q in process.extract(
-                                                    word, list(d['bookmarks'].items())
-                                                ) if q[1] >= 60]
-                                            )
-                                        ))
-                                        print(d['bookmarks'].items())
                                         responses = list(
                                             set(
                                                 [q[0] for word in query_words[1:] for q in process.extract(
@@ -212,7 +204,8 @@ class Wiki(commands.Cog):
                         }
                         g = await self.get(page_url)
                         page = BeautifulSoup(g, "html.parser")
-                        for bkmrk in page.find_all("h4", id=lambda value: value and value.startswith("bkmrk")):
+                        for bkmrk in page.find_all(["h2", "h3", "h4"],
+                                                   id=lambda value: value and value.startswith("bkmrk")):
                             wiki_pages[chapter_title]['pages'][page_title]["bookmarks"][bkmrk.text] = bkmrk.get('id')
 
     @staticmethod
