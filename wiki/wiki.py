@@ -133,7 +133,8 @@ class Wiki(commands.Cog):
                                             )
                                         )
                                         if not responses:
-                                            await ctx.send(f'No matches for bookmark query "{query_words[1:]}"')
+                                            query_words_text = ' '.join(query_words[1:])
+                                            await ctx.send(f'No matches for bookmark query "{query_words_text}"')
                                             break
                                         else:
                                             qw = " ".join(query_words[1:])
