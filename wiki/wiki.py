@@ -125,6 +125,14 @@ class Wiki(commands.Cog):
                                     if len(query_words) == 1:
                                         break
                                     else:
+                                        print(list(
+                                            set(
+                                                [q[0] for word in query_words[1:] for q in process.extract(
+                                                    word, list(d['bookmarks'].items())
+                                                ) if q[1] >= 60]
+                                            )
+                                        ))
+                                        print(d['bookmarks'].items())
                                         responses = list(
                                             set(
                                                 [q[0] for word in query_words[1:] for q in process.extract(
