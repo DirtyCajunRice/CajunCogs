@@ -121,8 +121,8 @@ class Wiki(commands.Cog):
                                     title = f"__**Have you read the {p} wiki page in the {chapter} chapter?**__"
                                     url = d['url']
                                     foot = f'{foot} -Page: "{query_words[0]}"'
+                                    embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
                                     if len(query_words) == 1:
-                                        embed = discord.Embed(title=title, colour=ctx.author.colour, url=url)
                                         break
                                     else:
                                         responses = list(
@@ -133,7 +133,7 @@ class Wiki(commands.Cog):
                                             )
                                         )
                                         if not responses:
-                                            await ctx.send(f'No matches for bookmark query "{query[1:]}"')
+                                            await ctx.send(f'No matches for bookmark query "{query_words[1:]}"')
                                             break
                                         else:
                                             qw = " ".join(query_words[1:])
